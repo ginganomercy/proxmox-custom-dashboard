@@ -1,73 +1,77 @@
-# React + TypeScript + Vite
+# 🖥️ Proxmox Custom Dashboard (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The main User Interface repository for the **Proxmox Custom Dashboard**. It is designed as a high-performance Monolithic Single Page Application (SPA) that communicates with multiple underlying Microservices (Golang Core API & Rust VNC Proxy).
 
-Currently, two official plugins are available:
+## 🚀 Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React v19**: The latest bleeding-edge version of React for rendering the UI.
+- **Vite v8**: Blazing fast next-generation frontend tooling and bundler.
+- **Tailwind CSS v4**: Utility-first CSS framework natively integrated via PostCSS for lightning-fast styling.
+- **TypeScript**: Ensures strict type safety and a robust Developer Experience.
+- **Framer Motion**: Powers the smooth micro-animations and page transitions.
+- **noVNC (@novnc/novnc)**: Core library for rendering raw Proxmox VNC streams directly into an HTML5 Canvas element.
+- **Recharts**: Renders beautiful, interactive telemetry data (CPU/RAM usage) in real-time.
+- **Lucide React & Sonner**: Minimalist icon set and elegant toast notifications.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 📂 Folder Structure
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+frontend-vite/
+├── .github/workflows/       # CI/CD Deployment pipelines (Trivy & Tailscale)
+├── public/                  # Static assets (Favicons, static SVGs)
+├── src/
+│   ├── assets/              # Bundled assets (Hero images, logos)
+│   ├── components/          # Reusable UI Components
+│   │   ├── ui/              # Base primitive components (e.g., GlassCard)
+│   │   ├── ConsoleViewer.tsx     # The noVNC integration component
+│   │   ├── DataTable.tsx         # Reusable table component
+│   │   ├── MetricChart.tsx       # Recharts integration for node metrics
+│   │   └── ...
+│   ├── lib/                 # Utility functions and API clients
+│   │   ├── api.ts           # Axios instance configured with JWT interceptors
+│   │   └── utils.ts         # Tailwind-merge and clsx utilities
+│   ├── pages/               # Main route views
+│   │   ├── Dashboard.tsx    # Core authenticated dashboard
+│   │   ├── LandingPage.tsx  # Public landing page
+│   │   └── Login.tsx        # Authentication page
+│   ├── App.tsx              # React Router setup
+│   └── main.tsx             # React DOM entrypoint
+├── Dockerfile               # Nginx-based multi-stage Docker build
+├── package.json             # NPM dependencies
+├── tailwind.config.js       # Tailwind theme configuration
+├── tsconfig.json            # TypeScript configuration
+└── vite.config.ts           # Vite bundler configuration
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🛠️ Local Development Setup
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/ginganomercy/proxmox-custom-dashboard.git
+   cd proxmox-custom-dashboard
+   ```
+
+2. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the Development Server:**
+   ```bash
+   npm run dev
+   ```
+   *Vite will start the server instantly, usually on `http://localhost:5173`.*
+
+---
+
+## 🔒 CI/CD & Deployment
+
+This service utilizes an **Enterprise-Grade GitHub Actions Pipeline**:
+1. **Lint & Type Check**: Enforces code quality via `eslint` and `tsc --noEmit`.
+2. **Docker Build**: Compiles the React app into static files and packages them inside an Alpine Nginx container (`ghcr.io`).
+3. **DevSecOps**: Scans the Docker image using **Trivy** to block critical CVEs from reaching production.
+4. **Zero-Trust Deployment**: Connects to your private Swarm Manager via **Tailscale** and automatically issues a `docker service update` using SSH.
