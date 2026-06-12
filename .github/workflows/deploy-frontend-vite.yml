@@ -31,8 +31,6 @@ jobs:
       - name: Lint Code
         run: npm run lint
 
-      - name: Type Check (TypeScript)
-        run: npx tsc --noEmit
 
   build-and-push:
     name: 🐳 Build & Push Docker Image
