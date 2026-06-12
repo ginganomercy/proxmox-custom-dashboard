@@ -70,7 +70,8 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
 
         if (!isMounted || !containerRef.current) return;
 
-        const wsUrl = `ws://localhost:3002/console/${node}/${vmid}?token=${token}`;
+        const wsBaseUrl = import.meta.env.VITE_VNC_URL || (import.meta.env.DEV ? 'ws://localhost:3002' : 'wss://cloud-proxy.pbjt.web.id');
+        const wsUrl = `${wsBaseUrl}/console/${node}/${vmid}?token=${token}`;
 
         const rfb = new RFB(containerRef.current, wsUrl, {
           credentials: { password: ticket },
