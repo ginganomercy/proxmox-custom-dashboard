@@ -71,10 +71,11 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         if (!isMounted || !containerRef.current) return;
 
         const wsBaseUrl = import.meta.env.VITE_VNC_URL || (import.meta.env.DEV ? 'ws://localhost:3002' : 'wss://cloud-proxy.pbjt.web.id');
-        const wsUrl = `${wsBaseUrl}/console/${node}/${vmid}?token=${token}`;
+        const wsUrl = `${wsBaseUrl}/console/${node}/${vmid}`;
 
         const rfb = new RFB(containerRef.current, wsUrl, {
           credentials: { password: ticket },
+          wsProtocols: ['jwt', token],
         });
 
         // Set scaling BEFORE the connection completes so the initial render fills space
