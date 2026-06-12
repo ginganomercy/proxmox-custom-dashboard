@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  frontend:
+    image: ghcr.io/ginganomercy/proxmox-custom-dashboard:latest
+    networks:
+      - front-tier
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+
+networks:
+  front-tier:
+    external: true
