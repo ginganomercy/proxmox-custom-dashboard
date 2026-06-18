@@ -8,7 +8,8 @@ import { cn } from '@/lib/utils';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { MetricChart } from '@/components/MetricChart';
 import { DataTable } from '@/components/DataTable';
-import { LogOut, Server, Activity, RefreshCw } from 'lucide-react';
+import { CreateVMModal } from '@/components/CreateVMModal';
+import { LogOut, Server, Activity, RefreshCw, Plus } from 'lucide-react';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -17,6 +18,10 @@ export function Dashboard() {
   const [nodeStatus, setNodeStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [user, setUser] = useState<any>(null);
+  const [voucherCode, setVoucherCode] = useState('');
+  const [isRedeeming, setIsRedeeming] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const checkAuth = () => {
     const token = Cookies.get('token');
@@ -45,11 +50,16 @@ export function Dashboard() {
         setNodeName('Unknown (Mock)');
       }
 
-      // 2. Fetch node status and instances (VMs + LXC) using the dynamic node name
-      const [statusRes, vmsRes] = await Promise.all([
+      // 2. Fetch node status, instances, and user profile
+      const [statusRes, vmsRes, userRes] = await Promise.all([
         api.get(`/proxmox/nodes/${targetNode}/status`).catch(() => null),
-        api.get(`/proxmox/nodes/${targetNode}/instances`).catch(() => null)
+        api.get(`/proxmox/nodes/${targetNode}/instances`).catch(() => null),
+        api.get(`/auth/me`).catch(() => null)
       ]);
+
+      if (userRes?.data) {
+        setUser(userRes.data);
+      }
 
       if (statusRes?.data && vmsRes?.data) {
         setNodeStatus(statusRes.data);
@@ -82,6 +92,22 @@ export function Dashboard() {
   const handleLogout = () => {
     Cookies.remove('token');
     navigate('/login');
+  };
+
+  const handleRedeemVoucher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!voucherCode) return;
+    setIsRedeeming(true);
+    try {
+      const res = await api.post('/vouchers/redeem', { code: voucherCode });
+      alert(`Success! Rp ${res.data.addedAmount.toLocaleString('id-ID')} added to your balance.`);
+      setVoucherCode('');
+      fetchData(); // refresh balance
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to redeem voucher');
+    } finally {
+      setIsRedeeming(false);
+    }
   };
 
   let cpuUsage = 0;
@@ -167,20 +193,62 @@ export function Dashboard() {
                  <p className="text-3xl font-bold text-blue-600">
                    {vms.filter((v: any) => v.status === 'running').length}
                  </p>
-               </div>
+              </div>
+           </GlassCard>
+
+           <GlassCard className="flex flex-col justify-center">
+             <div className="flex items-center gap-2 mb-4 text-slate-700">
+               <div className="w-5 h-5 text-indigo-500 font-bold">Rp</div>
+               <h2 className="font-semibold text-lg">My Wallet</h2>
              </div>
-          </GlassCard>
+             <div className="mb-4">
+               <p className="text-slate-500 text-sm font-medium">Current Balance</p>
+               <p className="text-3xl font-bold text-slate-800">
+                 Rp {user?.balance ? user.balance.toLocaleString('id-ID') : '0'}
+               </p>
+             </div>
+             <form onSubmit={handleRedeemVoucher} className="flex gap-2">
+               <input 
+                 type="text" 
+                 placeholder="Voucher Code" 
+                 value={voucherCode}
+                 onChange={(e) => setVoucherCode(e.target.value)}
+                 className="w-full px-3 py-2 bg-white/50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+               />
+               <button 
+                 type="submit" 
+                 disabled={isRedeeming || !voucherCode}
+                 className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+               >
+                 {isRedeeming ? '...' : 'Redeem'}
+               </button>
+             </form>
+           </GlassCard>
         </div>
 
         {/* Data Table */}
         <GlassCard>
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-semibold text-lg text-slate-700">Virtual Machines & LXC</h2>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-md shadow-indigo-500/20"
+            >
+              <Plus className="w-4 h-4" /> Create VM
+            </button>
           </div>
           <DataTable data={vms} isLoading={isLoading} nodeName={nodeName} />
         </GlassCard>
 
       </div>
+
+      <CreateVMModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          fetchData(); // Refresh VM list and balance
+        }}
+      />
     </div>
   );
 }
