@@ -71,9 +71,10 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara' }: DataTableP
       // Backend expects POST /proxmox/nodes/:node/qemu/:vmid/power with body { "action": "start" }
       await api.post(`/proxmox/nodes/${nodeName}/${type}/${vm.vmid}/power`, { action });
       alert(`${action.toUpperCase()} command sent to ${vm.name}. Click 'Refresh' to see status changes.`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert(`Failed to ${action} ${vm.name}`);
+      const errMsg = err.response?.data?.error || err.message || "Unknown error";
+      alert(`Failed to ${action} ${vm.name}: ${errMsg}`);
     } finally {
       setIsProcessing(null);
     }
