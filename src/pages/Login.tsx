@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -88,6 +88,15 @@ export function Login() {
             {isLoading ? 'Authenticating...' : 'Sign In'}
           </button>
         </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-slate-500">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-blue-600 font-semibold hover:underline">
+              Sign Up here
+            </Link>
+          </p>
+        </div>
       </GlassCard>
     </div>
   );

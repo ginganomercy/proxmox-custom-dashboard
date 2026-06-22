@@ -73,10 +73,10 @@ export function LandingPage() {
                   Sign In
                 </Link>
                 <Link 
-                  to="/login" 
+                  to="/register" 
                   className="px-4.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 transition-all flex items-center gap-1.5"
                 >
-                  Get Started
+                  Sign Up
                   <ChevronRight className="w-4 h-4" />
                 </Link>
               </>
