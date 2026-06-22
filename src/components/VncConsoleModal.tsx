@@ -42,7 +42,7 @@ export function VncConsoleModal({ isOpen, onClose, node, vmid, type, vmName }: V
       const res = await api.post(`/proxmox/nodes/${node}/${type}/${vmid}/vncproxy`);
       if (res.data && res.data.ticket) {
         setTicket(res.data.ticket);
-        connectVNC(res.data.ticket);
+        connectVNC(res.data.ticket, res.data.port, res.data.password);
       } else {
         throw new Error('Ticket not generated properly by backend');
       }
@@ -52,22 +52,18 @@ export function VncConsoleModal({ isOpen, onClose, node, vmid, type, vmName }: V
     }
   };
 
-  const connectVNC = (vncTicket: string) => {
+  const connectVNC = (ticketString: string, portString: string, passwordString: string) => {
     if (!containerRef.current) return;
     
     // Clean container
     containerRef.current.innerHTML = '';
     
     // Construct WSS URL
-    // Asumsikan proxy berada di URL ini (misal wss://cloud-core.pbjt.web.id/console...)
-    // Tapi karena kita mengakses vnc-proxy, URL-nya biasanya sama dengan API URL tapi ganti path dan wss
     const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : 'https://cloud-core.pbjt.web.id/api');
     
     // Extract host from apiBaseUrl
     const urlObj = new URL(apiBaseUrl);
     
-    // Untuk production di PBJT, vnc-proxy di-expose di path wss://cloud-dashboard.pbjt.web.id/vnc atau ada port khusus.
-    // Jika vnc-proxy ada di belakang ingress dengan path /console:
     // Tunggu, mari kita ambil token JWT
     const jwtToken = Cookies.get('token');
     
@@ -76,16 +72,18 @@ export function VncConsoleModal({ isOpen, onClose, node, vmid, type, vmName }: V
     const proxyHost = import.meta.env.VITE_VNC_PROXY_HOST || urlObj.hostname;
     const proxyPort = import.meta.env.VITE_VNC_PROXY_PORT || (window.location.protocol === 'https:' ? '443' : '3002');
     
-    // wss://host:port/console/node/vmid
+    // wss://host:port/console/node/vmid?port=...&vncticket=...
     let wsUrl = `${wsProtocol}//${proxyHost}`;
     if (proxyPort !== '443' && proxyPort !== '80') {
       wsUrl += `:${proxyPort}`;
     }
-    wsUrl += `/console/${node}/${vmid}`;
+    const encodedTicket = encodeURIComponent(ticketString);
+    wsUrl += `/console/${node}/${vmid}?port=${portString}&vncticket=${encodedTicket}`;
 
     try {
       // Configure RFB
       const rfb = new RFB(containerRef.current, wsUrl, {
+        credentials: { password: passwordString || ticketString },
         wsProtocols: ['jwt', jwtToken || ''],
       });
       
