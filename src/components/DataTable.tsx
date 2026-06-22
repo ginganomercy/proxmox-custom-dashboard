@@ -68,7 +68,8 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara' }: DataTableP
     const type = vm.type || 'qemu';
     try {
       const { default: api } = await import('@/lib/api');
-      await api.post(`/proxmox/nodes/${nodeName}/${type}/${vm.vmid}/status/${action}`);
+      // Backend expects POST /proxmox/nodes/:node/qemu/:vmid/power with body { "action": "start" }
+      await api.post(`/proxmox/nodes/${nodeName}/${type}/${vm.vmid}/power`, { action });
       alert(`${action.toUpperCase()} command sent to ${vm.name}. Click 'Refresh' to see status changes.`);
     } catch (err) {
       console.error(err);
