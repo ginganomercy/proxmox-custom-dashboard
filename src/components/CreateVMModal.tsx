@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Cpu, HardDrive, Network, ShoppingCart } from 'lucide-react';
+import { X, Cpu, HardDrive, Network, ShoppingCart, ChevronDown } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -97,10 +97,15 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Target Node</label>
-                  <select value={node} onChange={e => setNode(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all cursor-pointer">
-                    <option value="azizazindani">azizazindani (Proxmox 1)</option>
-                    <option value="pve">pve (Mock Node)</option>
-                  </select>
+                  <div className="relative">
+                    <select value={node} onChange={e => setNode(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all cursor-pointer appearance-none pr-10">
+                      <option value="azizazindani">azizazindani (Proxmox 1)</option>
+                      <option value="pve">pve (Mock Node)</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                      <ChevronDown className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Your Email (For Activation Code)</label>
