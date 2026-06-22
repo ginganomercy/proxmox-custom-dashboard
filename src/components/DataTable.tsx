@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { ConsoleViewer } from './ConsoleViewer';
 import InstanceManageModal from './InstanceManageModal';
 import { VMConfigModal } from './VMConfigModal';
+import { MetricsModal } from './MetricsModal';
 
 interface VM {
   vmid: number;
@@ -58,6 +59,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara' }: DataTableP
   const [activeConsole, setActiveConsole] = useState<VM | null>(null);
   const [activeManage, setActiveManage] = useState<VM | null>(null);
   const [activeConfig, setActiveConfig] = useState<VM | null>(null);
+  const [activeMetrics, setActiveMetrics] = useState<VM | null>(null);
   const [isProcessing, setIsProcessing] = useState<number | null>(null);
   const consoleModalRef = useRef<HTMLDivElement>(null);
 
@@ -222,6 +224,14 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara' }: DataTableP
                     Console
                   </button>
                   <button
+                    onClick={() => setActiveMetrics(vm)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-all"
+                    title="View Performance Metrics"
+                  >
+                    <svg className="w-3.5 h-3.5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    Metrics
+                  </button>
+                  <button
                     onClick={() => setActiveConfig(vm)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-all"
                     title="Hardware & Cloud-Init"
@@ -317,6 +327,16 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara' }: DataTableP
           vmid={activeConfig.vmid}
           isOpen={true}
           onClose={() => setActiveConfig(null)}
+        />
+      )}
+      {activeMetrics && (
+        <MetricsModal
+          isOpen={true}
+          onClose={() => setActiveMetrics(null)}
+          node={nodeName}
+          vmid={activeMetrics.vmid}
+          type={activeMetrics.type || 'qemu'}
+          vmName={activeMetrics.name}
         />
       )}
     </div>

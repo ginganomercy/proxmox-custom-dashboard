@@ -19,9 +19,12 @@ export function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [user, setUser] = useState<any>(null);
+  const [orders, setOrders] = useState<any[]>([]);
   const [voucherCode, setVoucherCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [activatingOrder, setActivatingOrder] = useState<string | null>(null);
+  const [activationCodeInput, setActivationCodeInput] = useState<{ [key: string]: string }>({});
 
   const checkAuth = () => {
     const token = Cookies.get('token');
@@ -50,15 +53,20 @@ export function Dashboard() {
         setNodeName('Unknown (Mock)');
       }
 
-      // 2. Fetch node status, instances, and user profile
-      const [statusRes, vmsRes, userRes] = await Promise.all([
+      // 2. Fetch node status, instances, user profile, and orders
+      const [statusRes, vmsRes, userRes, ordersRes] = await Promise.all([
         api.get(`/proxmox/nodes/${targetNode}/status`).catch(() => null),
         api.get(`/proxmox/nodes/${targetNode}/instances`).catch(() => null),
-        api.get(`/auth/me`).catch(() => null)
+        api.get(`/auth/me`).catch(() => null),
+        api.get(`/orders/me`).catch(() => null)
       ]);
 
       if (userRes?.data) {
         setUser(userRes.data);
+      }
+
+      if (ordersRes?.data) {
+        setOrders(ordersRes.data);
       }
 
       if (statusRes?.data && vmsRes?.data) {
@@ -107,6 +115,22 @@ export function Dashboard() {
       alert(err.response?.data?.error || 'Failed to redeem voucher');
     } finally {
       setIsRedeeming(false);
+    }
+  };
+
+  const handleActivateOrder = async (orderId: string) => {
+    const code = activationCodeInput[orderId];
+    if (!code) return;
+    
+    setActivatingOrder(orderId);
+    try {
+      await api.post(`/orders/${orderId}/activate`, { code });
+      alert('VM Successfully Provisioned! Please refresh the page if the VM does not appear immediately.');
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to activate order');
+    } finally {
+      setActivatingOrder(null);
     }
   };
 
@@ -226,6 +250,63 @@ export function Dashboard() {
              </form>
            </GlassCard>
         </div>
+
+        {/* Pending Orders Row */}
+        {orders.filter(o => o.status === 'PENDING' || o.status === 'READY_TO_ACTIVATE').length > 0 && (
+          <GlassCard>
+            <h2 className="font-semibold text-lg text-slate-700 mb-4 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-amber-500" /> My Pending Orders
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead>
+                  <tr className="border-b border-slate-200">
+                    <th className="pb-3 text-slate-500 font-medium">VM Name</th>
+                    <th className="pb-3 text-slate-500 font-medium">Specs</th>
+                    <th className="pb-3 text-slate-500 font-medium">Total Cost</th>
+                    <th className="pb-3 text-slate-500 font-medium">Status</th>
+                    <th className="pb-3 text-slate-500 font-medium">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {orders.filter(o => o.status === 'PENDING' || o.status === 'READY_TO_ACTIVATE').map(order => (
+                    <tr key={order.id}>
+                      <td className="py-3 font-medium text-slate-800">{order.name}</td>
+                      <td className="py-3 text-slate-600">{order.cores}C / {order.memory}MB / {order.storage}GB</td>
+                      <td className="py-3 text-slate-800 font-semibold">Rp {order.totalCost.toLocaleString('id-ID')}</td>
+                      <td className="py-3">
+                        <span className={cn(
+                          "px-2 py-1 text-xs font-medium rounded-full",
+                          order.status === 'PENDING' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                        )}>
+                          {order.status === 'PENDING' ? 'Awaiting Payment' : 'Code Sent to Email'}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <div className="flex gap-2">
+                          <input 
+                            type="text"
+                            placeholder="Enter Code"
+                            className="w-32 px-2 py-1 text-sm border border-slate-300 rounded-md focus:outline-none focus:border-indigo-500"
+                            value={activationCodeInput[order.id] || ''}
+                            onChange={e => setActivationCodeInput({...activationCodeInput, [order.id]: e.target.value})}
+                          />
+                          <button
+                            onClick={() => handleActivateOrder(order.id)}
+                            disabled={activatingOrder === order.id || !activationCodeInput[order.id]}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-xs font-medium disabled:opacity-50"
+                          >
+                            {activatingOrder === order.id ? '...' : 'Activate VM'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </GlassCard>
+        )}
 
         {/* Data Table */}
         <GlassCard>
