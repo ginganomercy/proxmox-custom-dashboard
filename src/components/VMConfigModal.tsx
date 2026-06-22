@@ -55,10 +55,10 @@ export function VMConfigModal({ node, vmid, isOpen, onClose }: VMConfigModalProp
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-2xl bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl border border-white p-8 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl border border-white p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors z-10"
         >
           <X className="w-5 h-5" />
         </button>
