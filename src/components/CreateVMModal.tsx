@@ -97,19 +97,19 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Target Node</label>
-                  <select value={node} onChange={e => setNode(e.target.value)} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                  <select value={node} onChange={e => setNode(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all cursor-pointer">
                     <option value="azizazindani">azizazindani (Proxmox 1)</option>
                     <option value="pve">pve (Mock Node)</option>
                   </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Your Email (For Activation Code)</label>
-                  <input type="email" required value={userEmail} onChange={e => setUserEmail(e.target.value)} placeholder="e.g. raflypriyantoro@gmail.com" className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500" />
+                  <input type="email" required value={userEmail} onChange={e => setUserEmail(e.target.value)} placeholder="e.g. raflypriyantoro@gmail.com" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all" />
                 </div>
 
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">VM Name</label>
-                  <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. production-web" className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500" />
+                  <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. production-web" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all" />
                 </div>
                 
                 <div className="col-span-2 md:col-span-1 bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
@@ -164,15 +164,15 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                  <input type="text" required value={ciuser} onChange={e => setCiuser(e.target.value)} placeholder="e.g. syslinux" className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl" />
+                  <input type="text" required value={ciuser} onChange={e => setCiuser(e.target.value)} placeholder="e.g. syslinux" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                  <input type="password" required value={cipassword} onChange={e => setCipassword(e.target.value)} placeholder="Secure password" className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl" />
+                  <input type="password" required value={cipassword} onChange={e => setCipassword(e.target.value)} placeholder="Secure password" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Network Config (ipconfig0)</label>
-                  <input type="text" required value={ipconfig0} onChange={e => setIpconfig0(e.target.value)} placeholder="ip=172.17.2.X/24,gw=172.17.2.1" className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm" />
+                  <input type="text" required value={ipconfig0} onChange={e => setIpconfig0(e.target.value)} placeholder="ip=172.17.2.X/24,gw=172.17.2.1" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all" />
                 </div>
               </div>
             </div>
