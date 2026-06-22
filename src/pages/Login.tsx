@@ -98,7 +98,7 @@ export function Login() {
 
         <button
           onClick={() => {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+            const baseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : 'https://cloud-core.pbjt.web.id/api');
             window.location.href = `${baseUrl}/auth/google`;
           }}
           className="w-full mt-4 flex items-center justify-center gap-3 py-3 px-4 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl font-medium transition-colors"
