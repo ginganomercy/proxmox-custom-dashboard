@@ -57,7 +57,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
       };
 
       const res = await api.post('/orders', payload);
-      toast.success('Pesanan berhasil dibuat! Silakan bayar tunai ke Admin (WA: 0856117933) sebutkan Order ID: ' + res.data.id, { duration: 10000 });
+      toast.success('Pesanan berhasil dibuat! Segera hubungi Admin (WA: 0856117933) untuk pembayaran.', { duration: 10000 });
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -146,7 +146,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
                 <div className="col-span-2 mt-4 p-5 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100 flex justify-between items-center">
                   <div>
                     <h3 className="text-sm font-semibold text-indigo-900">Total Harga Estimasi</h3>
-                    <p className="text-xs text-indigo-600/80 mt-0.5">Sekali bayar untuk selamanya</p>
+                    <p className="text-xs text-indigo-600/80 mt-0.5">Sekali bayar untuk selamanya (Batas 1 VM/Akun)</p>
                   </div>
                   <div className="text-2xl font-black text-indigo-600">
                     Rp {((cores * 10000) + (memory * 10) + (storage * 5000)).toLocaleString('id-ID')}
