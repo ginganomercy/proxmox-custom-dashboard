@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { X, Terminal, Maximize2, RefreshCw } from 'lucide-react';
 import api from '@/lib/api';
 import Cookies from 'js-cookie';
-// @ts-ignore
+// @ts-expect-error noVNC core/rfb does not have TypeScript definitions
 import RFB from '@novnc/novnc/core/rfb';
 
 interface VncConsoleModalProps {
@@ -29,7 +29,11 @@ export function VncConsoleModal({ isOpen, onClose, node, vmid, type, vmName }: V
     
     // Disconnect existing if any
     if (rfbRef.current) {
-      try { rfbRef.current.disconnect(); } catch (e) {}
+      try { 
+        rfbRef.current.disconnect(); 
+      } catch (e) {
+        // Ignore disconnect errors during re-initialization
+      }
       rfbRef.current = null;
     }
     
@@ -113,7 +117,11 @@ export function VncConsoleModal({ isOpen, onClose, node, vmid, type, vmName }: V
       fetchTicket();
     } else {
       if (rfbRef.current) {
-        try { rfbRef.current.disconnect(); } catch (e) {}
+        try { 
+          rfbRef.current.disconnect(); 
+        } catch (e) {
+          // Ignore error during cleanup
+        }
         rfbRef.current = null;
       }
       setTicket(null);
@@ -122,7 +130,11 @@ export function VncConsoleModal({ isOpen, onClose, node, vmid, type, vmName }: V
     
     return () => {
       if (rfbRef.current) {
-        try { rfbRef.current.disconnect(); } catch (e) {}
+        try { 
+          rfbRef.current.disconnect(); 
+        } catch (e) {
+          // Ignore error during unmount cleanup
+        }
         rfbRef.current = null;
       }
     };
