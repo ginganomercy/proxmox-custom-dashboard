@@ -116,38 +116,71 @@ export function Dashboard() {
     if (!code?.trim()) return;
     
     setActivatingOrder(orderId);
-    setProvisionStep('Menginisiasi koneksi ke cluster Proxmox...');
+    setProvisionStep('Memverifikasi kode aktivasi...');
     
-    // Simulate progressive loading steps for UX (real steps run on backend)
-    const steps = [
-      { msg: 'Mengalokasikan VMID baru dari cluster...', delay: 2000 },
-      { msg: 'Mengkloning template VM (proses 1-2 menit)...', delay: 5000 },
-      { msg: 'Menunggu konfirmasi clone selesai...', delay: 10000 },
-      { msg: 'Menyesuaikan ukuran disk...', delay: 20000 },
-      { msg: 'Menerapkan konfigurasi Cloud-Init (CPU, RAM, IP)...', delay: 35000 },
-      { msg: 'Menyalakan VM...', delay: 50000 },
-      { msg: 'Mendaftarkan VM ke database Anda...', delay: 65000 },
-    ];
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    steps.forEach(s => {
-      timers.push(setTimeout(() => setProvisionStep(s.msg), s.delay));
-    });
-
     try {
-      // Use longApi (5 min timeout) — provisioning pipeline is slow by nature
-      await longApi.post(`/orders/${orderId}/activate`, { code: code.trim() });
-      timers.forEach(clearTimeout);
-      setProvisionStep('✅ VM berhasil dibuat dan dinyalakan!');
-      setTimeout(() => {
-        setActivatingOrder(null);
-        setProvisionStep('');
-        fetchData();
-      }, 2000);
+      // Step 1: Submit activation — backend returns 202 immediately
+      // The actual provisioning runs in a background goroutine on the server.
+      const res = await api.post(`/orders/${orderId}/activate`, { code: code.trim() });
+      
+      // If synchronous success (shouldn't happen normally, but handle it)
+      if (res.status === 200) {
+        setProvisionStep('✅ VM berhasil dibuat dan dinyalakan!');
+        setTimeout(() => { setActivatingOrder(null); setProvisionStep(''); fetchData(); }, 2000);
+        return;
+      }
+
+      // Step 2: 202 Accepted — start polling /orders/me for status
+      setProvisionStep('Memulai proses provisioning VM di cluster Proxmox...');
+      
+      let pollCount = 0;
+      const MAX_POLLS = 120; // 120 × 5s = 10 minutes max
+      
+      const poll = setInterval(async () => {
+        pollCount++;
+        
+        // Show progressive status messages while waiting
+        if (pollCount === 3)  setProvisionStep('Mengalokasikan VMID baru dari cluster...');
+        if (pollCount === 6)  setProvisionStep('Mengkloning template VM (ini membutuhkan waktu 1-3 menit)...');
+        if (pollCount === 15) setProvisionStep('Menunggu konfirmasi clone selesai dari Proxmox...');
+        if (pollCount === 25) setProvisionStep('Menyesuaikan ukuran disk sesuai pesanan...');
+        if (pollCount === 35) setProvisionStep('Menerapkan konfigurasi Cloud-Init (CPU, RAM, IP)...');
+        if (pollCount === 45) setProvisionStep('Menyalakan VM dan mendaftarkan ke sistem...');
+        
+        if (pollCount >= MAX_POLLS) {
+          clearInterval(poll);
+          setActivatingOrder(null);
+          setProvisionStep('');
+          alert('⚠️ Waktu menunggu habis. Silakan refresh halaman untuk melihat status VM terbaru.');
+          return;
+        }
+        
+        try {
+          const ordersRes = await api.get('/orders/me');
+          const updatedOrder = ordersRes.data?.find((o: any) => o.id === orderId);
+          
+          if (!updatedOrder) return; // still fetching, wait next poll
+          
+          if (updatedOrder.status === 'COMPLETED') {
+            clearInterval(poll);
+            setProvisionStep('✅ VM berhasil dibuat dan dinyalakan!');
+            setTimeout(() => { setActivatingOrder(null); setProvisionStep(''); fetchData(); }, 2500);
+          } else if (updatedOrder.status === 'FAILED') {
+            clearInterval(poll);
+            setActivatingOrder(null);
+            setProvisionStep('');
+            alert(`❌ Aktivasi gagal: ${updatedOrder.provisionError || 'Terjadi kesalahan di server. Hubungi Administrator.'}`);
+          }
+          // status === 'PROVISIONING' → keep polling
+        } catch {
+          // Transient poll error — ignore and retry next cycle
+        }
+      }, 5000);
+      
     } catch (err: any) {
-      timers.forEach(clearTimeout);
       setActivatingOrder(null);
       setProvisionStep('');
-      const msg = err.response?.data?.error || err.response?.data?.details || err.message || 'Gagal mengaktifkan order';
+      const msg = err.response?.data?.error || err.message || 'Gagal menghubungi server';
       alert(`❌ Aktivasi gagal: ${msg}`);
     }
   };
