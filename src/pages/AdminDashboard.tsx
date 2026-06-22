@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import {
-  LogOut, Ticket, Plus, RefreshCw, Copy, CheckCircle,
-  Server, Activity, Cpu, MemoryStick, HardDrive, Clock,
-  ShieldCheck, Users, TrendingUp, CircleDot, ChevronRight
+  LogOut, Server, Activity, Cpu, MemoryStick, HardDrive, Clock,
+  ShieldCheck, Users, TrendingUp, ChevronRight, RefreshCw, CheckCircle, Copy
 } from 'lucide-react';
 
 // ─── Helper Utilities ──────────────────────────────────────────────────────────
@@ -104,24 +103,21 @@ function SectionCard({ children, className = '' }: SectionCardProps) {
 export function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'vouchers' | 'vms'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'vms'>('orders');
   
   // Data States
-  const [summary, setSummary] = useState<any>({ total_orders: 0, pending_orders: 0, total_vouchers: 0, active_vouchers: 0 });
+  const [summary, setSummary] = useState<any>({ total_orders: 0, pending_orders: 0 });
   const [nodeStatus, setNodeStatus] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
-  const [vouchers, setVouchers] = useState<any[]>([]);
   const [allVms, setAllVms] = useState<any[]>([]);
   const [targetNode, setTargetNode] = useState('pve');
   
   // Independent Loading States
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  const [isLoadingVouchers, setIsLoadingVouchers] = useState(false);
   const [isLoadingVms, setIsLoadingVms] = useState(false);
 
   // Form States
-  const [amount, setAmount] = useState<number>(50000);
   const [copiedCode, setCopiedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
 
@@ -180,28 +176,7 @@ export function AdminDashboard() {
     return () => controller.abort(); // Cancel request if tab changes before completion
   }, [activeTab]);
 
-  // 3. Lazy Load Vouchers (Anti-Race Condition)
-  useEffect(() => {
-    if (activeTab !== 'vouchers') return;
-    const controller = new AbortController();
-    
-    const fetchVouchers = async () => {
-      setIsLoadingVouchers(true);
-      try {
-        const res = await api.get('/vouchers', { signal: controller.signal });
-        if (res.data?.data) setVouchers(res.data.data);
-      } catch (err: any) {
-        if (err.name !== 'CanceledError') console.error('Vouchers fetch failed:', err);
-      } finally {
-        setIsLoadingVouchers(false);
-      }
-    };
-    
-    fetchVouchers();
-    return () => controller.abort();
-  }, [activeTab]);
-
-  // 4. Lazy Load VMs (Anti-Race Condition)
+  // 3. Lazy Load VMs (Anti-Race Condition)
   useEffect(() => {
     if (activeTab !== 'vms' || !targetNode) return;
     const controller = new AbortController();
@@ -224,19 +199,6 @@ export function AdminDashboard() {
 
 
   const handleLogout = () => { Cookies.remove('token'); navigate('/login'); };
-
-  const generateVoucher = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await api.post('/vouchers', { amount });
-      // Trigger refresh for vouchers tab and global summary
-      fetchGlobalData();
-      const res = await api.get('/vouchers');
-      if (res.data?.data) setVouchers(res.data.data);
-    } catch {
-      alert('Failed to generate voucher');
-    }
-  };
 
   const handleConfirmOrder = async (orderId: string) => {
     setIsGenerating(orderId);
@@ -316,7 +278,6 @@ export function AdminDashboard() {
             <button
               onClick={() => {
                 fetchGlobalData();
-                // trigger tab specific reload by resetting state temporarily or relying on component re-mount
               }}
               disabled={isLoadingSummary}
               className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition-all"
@@ -335,12 +296,11 @@ export function AdminDashboard() {
         </header>
 
         {/* ════════════════════════════════════════════════════════════════
-            SECTION 2: Quick Stats Row (Powered by Lightweight Summary API)
+            SECTION 2: Quick Stats Row
         ════════════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { label: 'Pending Orders', value: summary?.pending_orders, sub: `${summary?.total_orders || 0} total orders`, icon: <Users className="w-5 h-5" />, color: 'from-amber-500 to-orange-500' },
-            { label: 'Active Vouchers', value: summary?.active_vouchers, sub: `${summary?.total_vouchers || 0} total issued`, icon: <Ticket className="w-5 h-5" />, color: 'from-emerald-500 to-teal-600' },
             { label: 'Node Headroom', value: estimatedMaxNewVms, sub: 'est. new VMs can fit', icon: <TrendingUp className="w-5 h-5" />, color: 'from-violet-500 to-purple-600' },
             { label: 'Master Node CPU', value: `${cpuUsagePct.toFixed(1)}%`, sub: `of ${totalCores} vCores`, icon: <Cpu className="w-5 h-5" />, color: 'from-sky-500 to-blue-600' },
           ].map((stat) => (
@@ -467,7 +427,6 @@ export function AdminDashboard() {
           <div className="flex gap-1 p-4 border-b border-slate-100 bg-slate-50/50">
             {([
               { key: 'orders', label: 'Customer Orders', icon: <Users className="w-4 h-4" />, badge: summary?.pending_orders > 0 ? summary.pending_orders : null },
-              { key: 'vouchers', label: 'Voucher Management', icon: <Ticket className="w-4 h-4" />, badge: null },
               { key: 'vms', label: 'All Instances', icon: <Server className="w-4 h-4" />, badge: null },
             ] as const).map((tab) => (
               <button
@@ -568,85 +527,6 @@ export function AdminDashboard() {
                     )}
                   </tbody>
                 </table>
-              </div>
-            </div>
-          )}
-
-          {/* ── Tab: Voucher Management ─────────────────────────────────── */}
-          {activeTab === 'vouchers' && (
-            <div className="p-5">
-              <SectionHeader
-                icon={<Ticket className="w-5 h-5" />}
-                title="Voucher Management"
-                subtitle="Generate and distribute top-up vouchers to customers."
-              />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Generator */}
-                <div className="bg-slate-50 rounded-xl border border-slate-200 p-5">
-                  <h3 className="font-semibold text-slate-700 flex items-center gap-2 mb-4 text-sm">
-                    <Plus className="w-4 h-4 text-indigo-500" /> Generate New Voucher
-                  </h3>
-                  <form onSubmit={generateVoucher} className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Nominal (Rp)</label>
-                      <input
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(parseInt(e.target.value))}
-                        className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 font-medium"
-                      />
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[25000, 50000, 100000].map(v => (
-                        <button key={v} type="button" onClick={() => setAmount(v)} className={`text-xs py-1.5 rounded-lg font-medium border transition-colors ${amount === v ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'}`}>
-                          {(v / 1000).toFixed(0)}k
-                        </button>
-                      ))}
-                    </div>
-                    <button type="submit" className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm shadow-indigo-200">
-                      Generate Code
-                    </button>
-                  </form>
-                </div>
-
-                {/* Voucher List */}
-                <div className="md:col-span-2 overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-sm">
-                    <thead>
-                      <tr className="text-slate-500 text-xs font-semibold uppercase tracking-wide bg-slate-50 rounded-lg">
-                        <th className="py-3 px-3 rounded-l-lg">Code</th>
-                        <th className="py-3 px-3">Amount</th>
-                        <th className="py-3 px-3">Status</th>
-                        <th className="py-3 px-3">Used By</th>
-                        <th className="py-3 px-3 rounded-r-lg text-right">Copy</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {isLoadingVouchers ? (
-                        <tr><td colSpan={5} className="py-10 text-center text-slate-400 text-sm animate-pulse">Loading vouchers...</td></tr>
-                      ) : vouchers.map((v) => (
-                        <tr key={v.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                          <td className="py-3 px-3 font-mono font-semibold text-slate-700 text-xs">{v.code}</td>
-                          <td className="py-3 px-3 text-slate-600 font-medium">Rp {v.amount?.toLocaleString('id-ID')}</td>
-                          <td className="py-3 px-3">
-                            <span className={`px-2 py-1 rounded-md text-[11px] font-semibold ${v.isUsed ? 'bg-slate-100 text-slate-500' : 'bg-green-100 text-green-700'}`}>
-                              {v.isUsed ? 'Used' : 'Active'}
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 text-slate-400 text-xs">{v.usedBy || '—'}</td>
-                          <td className="py-3 px-3 text-right">
-                            <button onClick={() => copyToClipboard(v.code)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">
-                              {copiedCode === v.code ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {vouchers.length === 0 && !isLoadingVouchers && (
-                        <tr><td colSpan={5} className="py-10 text-center text-slate-400 text-sm">No vouchers generated yet.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
               </div>
             </div>
           )}
