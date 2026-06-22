@@ -106,7 +106,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara' }: DataTableP
 
   return (
     <div className="w-full overflow-x-auto">
-      <table className="w-full text-left border-collapse">
+      <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead>
           <tr className="border-b border-slate-200/50">
             <th className="py-4 px-2 font-semibold text-slate-500 text-sm">ID</th>
