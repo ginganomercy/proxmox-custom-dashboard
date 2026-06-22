@@ -24,7 +24,19 @@ export function Login() {
       if (response.data.token) {
         // Store JWT securely in cookies
         Cookies.set('token', response.data.token, { expires: 1, secure: true, sameSite: 'strict' });
-        navigate('/dashboard');
+        
+        // Cek role untuk menentukan arah redirect (Intelligent Routing)
+        try {
+          const userRes = await api.get('/auth/me');
+          if (userRes.data && userRes.data.role === 'ADMIN') {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
+        } catch (meErr) {
+          // Fallback jika /auth/me gagal
+          navigate('/dashboard');
+        }
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error;

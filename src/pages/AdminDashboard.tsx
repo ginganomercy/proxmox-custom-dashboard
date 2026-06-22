@@ -104,16 +104,26 @@ function SectionCard({ children, className = '' }: SectionCardProps) {
 export function AdminDashboard() {
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState<'orders' | 'vouchers' | 'vms'>('orders');
+  
+  // Data States
+  const [summary, setSummary] = useState<any>({ total_orders: 0, pending_orders: 0, total_vouchers: 0, active_vouchers: 0 });
+  const [nodeStatus, setNodeStatus] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [vouchers, setVouchers] = useState<any[]>([]);
-  const [nodeStatus, setNodeStatus] = useState<any>(null);
   const [allVms, setAllVms] = useState<any[]>([]);
   const [targetNode, setTargetNode] = useState('pve');
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // Independent Loading States
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [isLoadingVouchers, setIsLoadingVouchers] = useState(false);
+  const [isLoadingVms, setIsLoadingVms] = useState(false);
+
+  // Form States
   const [amount, setAmount] = useState<number>(50000);
   const [copiedCode, setCopiedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'orders' | 'vouchers' | 'vms'>('orders');
 
   const checkAuth = () => {
     const token = Cookies.get('token');
@@ -121,9 +131,10 @@ export function AdminDashboard() {
     return true;
   };
 
-  const fetchData = async () => {
+  // 1. Fetch Global Summary (On Mount & Refresh)
+  const fetchGlobalData = async () => {
     if (!checkAuth()) return;
-    setIsLoading(true);
+    setIsLoadingSummary(true);
     try {
       let nodeToUse = targetNode;
       const nodesRes = await api.get('/proxmox/nodes').catch(() => null);
@@ -132,25 +143,85 @@ export function AdminDashboard() {
         setTargetNode(nodeToUse);
       }
 
-      const [vouchersRes, ordersRes, statusRes, vmsRes] = await Promise.all([
-        api.get('/vouchers').catch(() => null),
-        api.get('/admin/orders').catch(() => null),
+      const [statusRes, summaryRes] = await Promise.all([
         api.get(`/proxmox/nodes/${nodeToUse}/status`).catch(() => null),
-        api.get(`/proxmox/nodes/${nodeToUse}/instances`).catch(() => null),
+        api.get('/admin/summary').catch(() => null),
       ]);
 
-      if (vouchersRes?.data?.data) setVouchers(vouchersRes.data.data);
-      if (ordersRes?.data) setOrders(ordersRes.data);
       if (statusRes?.data) setNodeStatus(statusRes.data);
-      if (vmsRes?.data) setAllVms(vmsRes.data);
+      if (summaryRes?.data) setSummary(summaryRes.data);
     } catch (err) {
       console.error(err);
     } finally {
-      setIsLoading(false);
+      setIsLoadingSummary(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchGlobalData(); }, []);
+
+  // 2. Lazy Load Orders (Anti-Race Condition via AbortController)
+  useEffect(() => {
+    if (activeTab !== 'orders') return;
+    const controller = new AbortController();
+    
+    const fetchOrders = async () => {
+      setIsLoadingOrders(true);
+      try {
+        const res = await api.get('/admin/orders', { signal: controller.signal });
+        if (res.data) setOrders(res.data);
+      } catch (err: any) {
+        if (err.name !== 'CanceledError') console.error('Orders fetch failed:', err);
+      } finally {
+        setIsLoadingOrders(false);
+      }
+    };
+    
+    fetchOrders();
+    return () => controller.abort(); // Cancel request if tab changes before completion
+  }, [activeTab]);
+
+  // 3. Lazy Load Vouchers (Anti-Race Condition)
+  useEffect(() => {
+    if (activeTab !== 'vouchers') return;
+    const controller = new AbortController();
+    
+    const fetchVouchers = async () => {
+      setIsLoadingVouchers(true);
+      try {
+        const res = await api.get('/vouchers', { signal: controller.signal });
+        if (res.data?.data) setVouchers(res.data.data);
+      } catch (err: any) {
+        if (err.name !== 'CanceledError') console.error('Vouchers fetch failed:', err);
+      } finally {
+        setIsLoadingVouchers(false);
+      }
+    };
+    
+    fetchVouchers();
+    return () => controller.abort();
+  }, [activeTab]);
+
+  // 4. Lazy Load VMs (Anti-Race Condition)
+  useEffect(() => {
+    if (activeTab !== 'vms' || !targetNode) return;
+    const controller = new AbortController();
+    
+    const fetchVms = async () => {
+      setIsLoadingVms(true);
+      try {
+        const res = await api.get(`/proxmox/nodes/${targetNode}/instances`, { signal: controller.signal });
+        if (res.data) setAllVms(res.data);
+      } catch (err: any) {
+        if (err.name !== 'CanceledError') console.error('VMs fetch failed:', err);
+      } finally {
+        setIsLoadingVms(false);
+      }
+    };
+    
+    fetchVms();
+    return () => controller.abort();
+  }, [activeTab, targetNode]);
+
 
   const handleLogout = () => { Cookies.remove('token'); navigate('/login'); };
 
@@ -158,7 +229,10 @@ export function AdminDashboard() {
     e.preventDefault();
     try {
       await api.post('/vouchers', { amount });
-      fetchData();
+      // Trigger refresh for vouchers tab and global summary
+      fetchGlobalData();
+      const res = await api.get('/vouchers');
+      if (res.data?.data) setVouchers(res.data.data);
     } catch {
       alert('Failed to generate voucher');
     }
@@ -168,7 +242,10 @@ export function AdminDashboard() {
     setIsGenerating(orderId);
     try {
       await api.post(`/admin/orders/${orderId}/generate`);
-      fetchData();
+      // Trigger refresh for orders tab and global summary
+      fetchGlobalData();
+      const res = await api.get('/admin/orders');
+      if (res.data) setOrders(res.data);
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to generate code');
     } finally {
@@ -194,12 +271,6 @@ export function AdminDashboard() {
   const cpuUsagePct = nodeStatus?.cpu ? nodeStatus.cpu * 100 : 0;
   const totalCores = nodeStatus?.cpuinfo?.cpus ?? 0;
   const cpuModel = nodeStatus?.cpuinfo?.model ?? 'N/A';
-
-  const runningVms = allVms.filter(v => v.status === 'running').length;
-  const stoppedVms = allVms.length - runningVms;
-
-  const pendingOrders = orders.filter(o => o.status === 'PENDING').length;
-  const activeVouchers = vouchers.filter(v => !v.isUsed).length;
 
   // Estimated "available" capacity in terms of VM slots (based on RAM headroom, 1GB per VM min)
   const estimatedMaxNewVms = Math.floor(availableRamBytes / (1 * 1024 * 1024 * 1024));
@@ -236,12 +307,22 @@ export function AdminDashboard() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={fetchData}
-              disabled={isLoading}
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-sm font-semibold transition-all border border-indigo-100"
+            >
+              <Users className="w-4 h-4" />
+              Customer View
+            </button>
+            <button
+              onClick={() => {
+                fetchGlobalData();
+                // trigger tab specific reload by resetting state temporarily or relying on component re-mount
+              }}
+              disabled={isLoadingSummary}
               className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition-all"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
+              <RefreshCw className={`w-4 h-4 ${isLoadingSummary ? 'animate-spin' : ''}`} />
+              Refresh Node
             </button>
             <button
               onClick={handleLogout}
@@ -254,21 +335,21 @@ export function AdminDashboard() {
         </header>
 
         {/* ════════════════════════════════════════════════════════════════
-            SECTION 2: Quick Stats Row
+            SECTION 2: Quick Stats Row (Powered by Lightweight Summary API)
         ════════════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Total Instances', value: allVms.length, sub: `${runningVms} running`, icon: <Server className="w-5 h-5" />, color: 'from-indigo-500 to-indigo-600' },
-            { label: 'Pending Orders', value: pendingOrders, sub: `${orders.length} total orders`, icon: <Users className="w-5 h-5" />, color: 'from-amber-500 to-orange-500' },
-            { label: 'Active Vouchers', value: activeVouchers, sub: `${vouchers.length} total issued`, icon: <Ticket className="w-5 h-5" />, color: 'from-emerald-500 to-teal-600' },
-            { label: 'VM Headroom', value: estimatedMaxNewVms, sub: 'estimated new VMs', icon: <TrendingUp className="w-5 h-5" />, color: 'from-violet-500 to-purple-600' },
+            { label: 'Pending Orders', value: summary?.pending_orders, sub: `${summary?.total_orders || 0} total orders`, icon: <Users className="w-5 h-5" />, color: 'from-amber-500 to-orange-500' },
+            { label: 'Active Vouchers', value: summary?.active_vouchers, sub: `${summary?.total_vouchers || 0} total issued`, icon: <Ticket className="w-5 h-5" />, color: 'from-emerald-500 to-teal-600' },
+            { label: 'Node Headroom', value: estimatedMaxNewVms, sub: 'est. new VMs can fit', icon: <TrendingUp className="w-5 h-5" />, color: 'from-violet-500 to-purple-600' },
+            { label: 'Master Node CPU', value: `${cpuUsagePct.toFixed(1)}%`, sub: `of ${totalCores} vCores`, icon: <Cpu className="w-5 h-5" />, color: 'from-sky-500 to-blue-600' },
           ].map((stat) => (
             <div key={stat.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
               <div className={`p-2.5 bg-gradient-to-br ${stat.color} text-white rounded-xl shadow-lg flex-shrink-0`}>
                 {stat.icon}
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-800">{isLoading ? '—' : stat.value}</div>
+                <div className="text-2xl font-bold text-slate-800">{isLoadingSummary ? '—' : stat.value}</div>
                 <div className="text-xs text-slate-500 font-medium mt-0.5">{stat.label}</div>
                 <div className="text-[11px] text-slate-400 mt-0.5">{stat.sub}</div>
               </div>
@@ -293,14 +374,6 @@ export function AdminDashboard() {
                     &nbsp;·&nbsp; CPU Model: <span className="text-slate-300 font-medium">{cpuModel}</span>
                   </p>
                 </div>
-              </div>
-              <div className="hidden md:flex gap-2 text-xs text-slate-400">
-                <span className="px-2 py-1 bg-green-500/20 text-green-300 rounded-lg font-medium">
-                  ● {runningVms} Running
-                </span>
-                <span className="px-2 py-1 bg-red-500/20 text-red-300 rounded-lg font-medium">
-                  ● {stoppedVms} Stopped
-                </span>
               </div>
             </div>
 
@@ -393,7 +466,7 @@ export function AdminDashboard() {
           {/* Tab Navigation */}
           <div className="flex gap-1 p-4 border-b border-slate-100 bg-slate-50/50">
             {([
-              { key: 'orders', label: 'Customer Orders', icon: <Users className="w-4 h-4" />, badge: pendingOrders > 0 ? pendingOrders : null },
+              { key: 'orders', label: 'Customer Orders', icon: <Users className="w-4 h-4" />, badge: summary?.pending_orders > 0 ? summary.pending_orders : null },
               { key: 'vouchers', label: 'Voucher Management', icon: <Ticket className="w-4 h-4" />, badge: null },
               { key: 'vms', label: 'All Instances', icon: <Server className="w-4 h-4" />, badge: null },
             ] as const).map((tab) => (
@@ -424,16 +497,6 @@ export function AdminDashboard() {
                 icon={<Users className="w-5 h-5" />}
                 title="Customer VM Orders"
                 subtitle="Manage incoming provisioning requests. Click 'Confirm' to send the activation code via email."
-                action={
-                  <div className="flex gap-3 text-xs">
-                    <span className="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-lg font-semibold">
-                      {pendingOrders} Pending
-                    </span>
-                    <span className="px-2 py-1 bg-green-50 text-green-700 border border-green-100 rounded-lg font-semibold">
-                      {orders.filter(o => o.status === 'COMPLETED').length} Completed
-                    </span>
-                  </div>
-                }
               />
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
@@ -448,7 +511,9 @@ export function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((o) => (
+                    {isLoadingOrders ? (
+                      <tr><td colSpan={6} className="py-12 text-center text-slate-400 text-sm animate-pulse">Loading orders data...</td></tr>
+                    ) : orders.map((o) => (
                       <tr key={o.id} className="border-t border-slate-100 hover:bg-indigo-50/30 transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="font-semibold text-slate-800">{o.name}</div>
@@ -498,7 +563,7 @@ export function AdminDashboard() {
                         </td>
                       </tr>
                     ))}
-                    {orders.length === 0 && !isLoading && (
+                    {orders.length === 0 && !isLoadingOrders && (
                       <tr><td colSpan={6} className="py-12 text-center text-slate-400 text-sm">No orders found yet.</td></tr>
                     )}
                   </tbody>
@@ -557,7 +622,9 @@ export function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {vouchers.map((v) => (
+                      {isLoadingVouchers ? (
+                        <tr><td colSpan={5} className="py-10 text-center text-slate-400 text-sm animate-pulse">Loading vouchers...</td></tr>
+                      ) : vouchers.map((v) => (
                         <tr key={v.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                           <td className="py-3 px-3 font-mono font-semibold text-slate-700 text-xs">{v.code}</td>
                           <td className="py-3 px-3 text-slate-600 font-medium">Rp {v.amount?.toLocaleString('id-ID')}</td>
@@ -574,7 +641,7 @@ export function AdminDashboard() {
                           </td>
                         </tr>
                       ))}
-                      {vouchers.length === 0 && !isLoading && (
+                      {vouchers.length === 0 && !isLoadingVouchers && (
                         <tr><td colSpan={5} className="py-10 text-center text-slate-400 text-sm">No vouchers generated yet.</td></tr>
                       )}
                     </tbody>
@@ -591,16 +658,6 @@ export function AdminDashboard() {
                 icon={<Server className="w-5 h-5" />}
                 title="All Node Instances"
                 subtitle={`Live view of every VM and LXC container on node: ${targetNode}`}
-                action={
-                  <div className="flex gap-2 text-xs">
-                    <span className="px-2.5 py-1 bg-green-50 text-green-700 border border-green-100 rounded-lg font-semibold flex items-center gap-1">
-                      <CircleDot className="w-3 h-3" /> {runningVms} Running
-                    </span>
-                    <span className="px-2.5 py-1 bg-red-50 text-red-600 border border-red-100 rounded-lg font-semibold flex items-center gap-1">
-                      <CircleDot className="w-3 h-3" /> {stoppedVms} Stopped
-                    </span>
-                  </div>
-                }
               />
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
@@ -615,7 +672,9 @@ export function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {allVms.map((vm) => {
+                    {isLoadingVms ? (
+                      <tr><td colSpan={6} className="py-12 text-center text-slate-400 text-sm animate-pulse">Scanning Proxmox Instances...</td></tr>
+                    ) : allVms.map((vm) => {
                       const ramPct = vm.maxmem > 0 ? ((vm.mem / vm.maxmem) * 100) : 0;
                       return (
                         <tr key={vm.vmid} className="border-t border-slate-100 hover:bg-indigo-50/30 transition-colors">
@@ -650,7 +709,7 @@ export function AdminDashboard() {
                         </tr>
                       );
                     })}
-                    {allVms.length === 0 && !isLoading && (
+                    {allVms.length === 0 && !isLoadingVms && (
                       <tr><td colSpan={6} className="py-12 text-center text-slate-400 text-sm">No instances found on {targetNode}.</td></tr>
                     )}
                   </tbody>

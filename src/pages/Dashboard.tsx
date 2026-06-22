@@ -134,6 +134,15 @@ export function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3">
+            {user?.role === 'ADMIN' && (
+              <button 
+                onClick={() => navigate('/admin')}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-all shadow-md"
+              >
+                <Server className="w-4 h-4" />
+                Admin Panel
+              </button>
+            )}
             <button 
               onClick={fetchData}
               disabled={isLoading}

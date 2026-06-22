@@ -16,8 +16,25 @@ export function SSOCallback() {
       // Wajib disimpan di Cookies agar terbaca oleh api.ts dan rute terproteksi
       Cookies.set('token', token, { expires: 1, secure: true, sameSite: 'strict' });
       toast.success('Successfully logged in with Google!');
-      // Short delay to ensure localStorage is set and UX feels natural
-      setTimeout(() => navigate('/dashboard'), 500);
+      
+      // Intelligent Routing berdasarkan Role
+      const routeUser = async () => {
+        try {
+          // Dynamic import of api to avoid circular dependencies if any, though regular import is fine
+          const apiModule = await import('@/lib/api');
+          const userRes = await apiModule.default.get('/auth/me');
+          if (userRes.data && userRes.data.role === 'ADMIN') {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
+        } catch (err) {
+          navigate('/dashboard');
+        }
+      };
+
+      // Eksekusi routing
+      setTimeout(routeUser, 500);
     } else {
       toast.error('SSO Login failed: No token received.');
       navigate('/login');
