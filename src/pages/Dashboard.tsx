@@ -84,9 +84,9 @@ export function Dashboard() {
       if (userRes?.data) setUser(userRes.data);
       if (ordersRes?.data) setOrders(ordersRes.data);
 
-      if (statusRes?.data && vmsRes?.data) {
+      if (statusRes?.data && vmsRes?.data !== undefined) {
         setNodeStatus(statusRes.data);
-        setVms(vmsRes.data);
+        setVms(vmsRes.data || []);
       } else {
         setNodeStatus(null);
         setVms([]);
@@ -317,10 +317,10 @@ export function Dashboard() {
         )}
 
         {/* Pending Orders Row */}
-        {orders.filter(o => o.status === 'PENDING' || o.status === 'READY_TO_ACTIVATE').length > 0 && (
+        {orders.filter(o => o.status === 'PENDING' || o.status === 'READY_TO_ACTIVATE' || o.status === 'FAILED').length > 0 && (
           <GlassCard>
             <h2 className="font-semibold text-lg text-slate-700 mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-amber-500" /> My Pending Orders
+              <Activity className="w-5 h-5 text-amber-500" /> My Orders
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
@@ -334,7 +334,7 @@ export function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {orders.filter(o => o.status === 'PENDING' || o.status === 'READY_TO_ACTIVATE').map(order => (
+                  {orders.filter(o => o.status === 'PENDING' || o.status === 'READY_TO_ACTIVATE' || o.status === 'FAILED').map(order => (
                     <tr key={order.id}>
                       <td className="py-3 font-medium text-slate-800">{order.name}</td>
                       <td className="py-3 text-slate-600">{order.cores}C / {order.memory}MB / {order.storage}GB</td>
@@ -342,28 +342,53 @@ export function Dashboard() {
                       <td className="py-3">
                         <span className={cn(
                           "px-2 py-1 text-xs font-medium rounded-full",
-                          order.status === 'PENDING' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                          order.status === 'PENDING' ? "bg-amber-100 text-amber-700" :
+                          order.status === 'READY_TO_ACTIVATE' ? "bg-blue-100 text-blue-700" :
+                          "bg-red-100 text-red-700"
                         )}>
-                          {order.status === 'PENDING' ? 'Awaiting Payment' : 'Code Sent to Email'}
+                          {order.status === 'PENDING' ? 'Awaiting Payment' : 
+                           order.status === 'READY_TO_ACTIVATE' ? 'Code Sent to Email' : 
+                           'Provisioning Failed'}
                         </span>
                       </td>
                       <td className="py-3">
-                        <div className="flex gap-2">
-                          <input 
-                            type="text"
-                            placeholder="Enter Code"
-                            className="w-32 px-2 py-1 text-sm border border-slate-300 rounded-md focus:outline-none focus:border-indigo-500"
-                            value={activationCodeInput[order.id] || ''}
-                            onChange={e => setActivationCodeInput({...activationCodeInput, [order.id]: e.target.value})}
-                          />
-                          <button
-                            onClick={() => handleActivateOrder(order.id)}
-                            disabled={activatingOrder === order.id || !activationCodeInput[order.id]}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-xs font-medium disabled:opacity-50"
-                          >
-                            {activatingOrder === order.id ? '...' : 'Activate VM'}
-                          </button>
-                        </div>
+                        {order.status === 'FAILED' ? (
+                          <div className="flex gap-2 items-center">
+                            <span className="text-xs text-red-500 font-medium max-w-[150px] truncate" title={order.provisionError}>Error: {order.provisionError || 'Unknown'}</span>
+                            <button
+                              onClick={async () => {
+                                if (confirm('Menghapus order gagal ini?')) {
+                                  try {
+                                    await api.delete(`/orders/${order.id}`);
+                                    fetchData();
+                                  } catch(e) {
+                                    alert('Gagal menghapus order');
+                                  }
+                                }
+                              }}
+                              className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-md text-xs font-medium transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <input 
+                              type="text"
+                              placeholder="Enter Code"
+                              className="w-32 px-2 py-1 text-sm border border-slate-300 rounded-md focus:outline-none focus:border-indigo-500"
+                              value={activationCodeInput[order.id] || ''}
+                              onChange={e => setActivationCodeInput({...activationCodeInput, [order.id]: e.target.value})}
+                            />
+                            <button
+                              onClick={() => handleActivateOrder(order.id)}
+                              disabled={activatingOrder === order.id || !activationCodeInput[order.id]}
+                              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-xs font-medium disabled:opacity-50"
+                            >
+                              {activatingOrder === order.id ? '...' : 'Activate VM'}
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}

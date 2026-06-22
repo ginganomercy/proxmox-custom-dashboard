@@ -509,13 +509,31 @@ export function AdminDashboard() {
                             </button>
                           ) : (
                             <div className="flex items-center gap-2 justify-end">
-                              {o.activationCode && (
+                              {o.activationCode && o.status !== 'FAILED' && (
                                 <>
                                   <span className="font-mono text-xs bg-slate-100 px-2 py-1 rounded border border-slate-200">{o.activationCode}</span>
                                   <button onClick={() => copyToClipboard(o.activationCode)} className="text-slate-400 hover:text-indigo-600 transition-colors">
                                     {copiedCode === o.activationCode ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                                   </button>
                                 </>
+                              )}
+                              {o.status === 'FAILED' && (
+                                <button
+                                  onClick={async () => {
+                                    if (confirm('Are you sure you want to delete this failed order?')) {
+                                      try {
+                                        await api.delete(`/orders/${o.id}`);
+                                        const res = await api.get('/admin/orders');
+                                        if (res.data) setOrders(res.data);
+                                      } catch (err: any) {
+                                        alert(err.response?.data?.error || 'Failed to delete order');
+                                      }
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ml-auto"
+                                >
+                                  Delete
+                                </button>
                               )}
                             </div>
                           )}

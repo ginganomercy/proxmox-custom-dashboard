@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Terminal, Maximize2, RefreshCw } from 'lucide-react';
 import api from '@/lib/api';
+import Cookies from 'js-cookie';
+// @ts-ignore
+import RFB from '@novnc/novnc/core/rfb';
 
 interface VncConsoleModalProps {
   isOpen: boolean;
@@ -13,27 +16,94 @@ interface VncConsoleModalProps {
 
 export function VncConsoleModal({ isOpen, onClose, node, vmid, type, vmName }: VncConsoleModalProps) {
   const [ticket, setTicket] = useState<string | null>(null);
-  const [port, setPort] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const proxmoxHost = import.meta.env.VITE_PROXMOX_HOST || window.location.hostname; // Can be configured via .env
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rfbRef = useRef<any>(null);
 
   const fetchTicket = async () => {
     setIsLoading(true);
     setError('');
+    
+    // Disconnect existing if any
+    if (rfbRef.current) {
+      try { rfbRef.current.disconnect(); } catch (e) {}
+      rfbRef.current = null;
+    }
+    
     try {
+      // 1. Get ticket from core-api
       const res = await api.post(`/proxmox/nodes/${node}/${type}/${vmid}/vncproxy`);
       if (res.data && res.data.ticket) {
         setTicket(res.data.ticket);
-        setPort(res.data.port);
+        connectVNC(res.data.ticket);
       } else {
         throw new Error('Ticket not generated properly by backend');
       }
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || 'Failed to initialize VNC Console');
-    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const connectVNC = (vncTicket: string) => {
+    if (!containerRef.current) return;
+    
+    // Clean container
+    containerRef.current.innerHTML = '';
+    
+    // Construct WSS URL
+    // Asumsikan proxy berada di URL ini (misal wss://cloud-core.pbjt.web.id/console...)
+    // Tapi karena kita mengakses vnc-proxy, URL-nya biasanya sama dengan API URL tapi ganti path dan wss
+    const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : 'https://cloud-core.pbjt.web.id/api');
+    
+    // Extract host from apiBaseUrl
+    const urlObj = new URL(apiBaseUrl);
+    
+    // Untuk production di PBJT, vnc-proxy di-expose di path wss://cloud-dashboard.pbjt.web.id/vnc atau ada port khusus.
+    // Jika vnc-proxy ada di belakang ingress dengan path /console:
+    // Tunggu, mari kita ambil token JWT
+    const jwtToken = Cookies.get('token');
+    
+    // Karena VNC proxy adalah service terpisah, mari kita tebak URLnya atau gunakan env fallback
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const proxyHost = import.meta.env.VITE_VNC_PROXY_HOST || urlObj.hostname;
+    const proxyPort = import.meta.env.VITE_VNC_PROXY_PORT || (window.location.protocol === 'https:' ? '443' : '3002');
+    
+    // wss://host:port/console/node/vmid
+    let wsUrl = `${wsProtocol}//${proxyHost}`;
+    if (proxyPort !== '443' && proxyPort !== '80') {
+      wsUrl += `:${proxyPort}`;
+    }
+    wsUrl += `/console/${node}/${vmid}`;
+
+    try {
+      // Configure RFB
+      const rfb = new RFB(containerRef.current, wsUrl, {
+        wsProtocols: ['jwt', jwtToken || ''],
+      });
+      
+      rfbRef.current = rfb;
+      
+      rfb.addEventListener('connect', () => {
+        setIsLoading(false);
+      });
+      
+      rfb.addEventListener('disconnect', (e: any) => {
+        setIsLoading(false);
+        if (!e.detail.clean) {
+          setError('Koneksi terputus tiba-tiba. VM mungkin sedang reboot atau Proxmox sibuk.');
+        }
+      });
+      
+      rfb.scaleViewport = true;
+      rfb.resizeSession = false;
+      rfb.showDotCursor = true;
+      
+    } catch (err: any) {
+      setError(`Gagal membuat koneksi RFB: ${err.message}`);
       setIsLoading(false);
     }
   };
@@ -42,19 +112,23 @@ export function VncConsoleModal({ isOpen, onClose, node, vmid, type, vmName }: V
     if (isOpen && vmid) {
       fetchTicket();
     } else {
+      if (rfbRef.current) {
+        try { rfbRef.current.disconnect(); } catch (e) {}
+        rfbRef.current = null;
+      }
       setTicket(null);
-      setPort(null);
       setIsFullscreen(false);
     }
+    
+    return () => {
+      if (rfbRef.current) {
+        try { rfbRef.current.disconnect(); } catch (e) {}
+        rfbRef.current = null;
+      }
+    };
   }, [isOpen, vmid, node, type]);
 
   if (!isOpen) return null;
-
-  // URL construction for Proxmox native noVNC
-  // We use the proxy port and ticket returned by the API
-  const vncUrl = ticket 
-    ? `https://${proxmoxHost}:8006/?console=kvm&novnc=1&vmid=${vmid}&node=${node}&resize=scale&vncticket=${encodeURIComponent(ticket)}` 
-    : '';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -97,44 +171,39 @@ export function VncConsoleModal({ isOpen, onClose, node, vmid, type, vmName }: V
         </div>
 
         {/* Content */}
-        <div className="flex-1 relative bg-black flex items-center justify-center p-2">
+        <div className="flex-1 relative bg-black flex items-center justify-center p-0 overflow-hidden">
           {isLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10 text-white">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 text-white">
               <RefreshCw className="w-8 h-8 animate-spin text-indigo-500 mb-4" />
-              <p>Establishing secure connection...</p>
+              <p>Menghubungkan ke VM Terminal...</p>
             </div>
           )}
           
           {error && (
-            <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/90">
+            <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/90">
               <div className="text-center p-6 bg-red-900/20 border border-red-500/30 rounded-xl max-w-md">
                 <Terminal className="w-12 h-12 text-red-500 mx-auto mb-3 opacity-50" />
-                <h4 className="text-red-400 font-semibold mb-2">Connection Failed</h4>
+                <h4 className="text-red-400 font-semibold mb-2">Koneksi Gagal</h4>
                 <p className="text-slate-300 text-sm">{error}</p>
                 <button 
                   onClick={fetchTicket}
                   className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition-colors"
                 >
-                  Try Again
+                  Coba Lagi
                 </button>
               </div>
             </div>
           )}
 
-          {ticket && !isLoading && !error && (
-            <div className="w-full h-full bg-slate-900 rounded-lg overflow-hidden border border-slate-800">
-              {/* Note: In a production environment, you might need to handle CORS and WSS proxies if the Proxmox IP is different from the web server. 
-                  This iframe assumes the Proxmox UI port 8006 is reachable from the client's browser. */}
-              <iframe 
-                src={vncUrl}
-                className="w-full h-full border-0 focus:outline-none"
-                title={`VNC Console for ${vmName}`}
-                allowFullScreen
-              />
-            </div>
-          )}
+          {/* noVNC Container */}
+          <div 
+            ref={containerRef} 
+            className="w-full h-full flex items-center justify-center bg-slate-900 focus:outline-none"
+            tabIndex={0}
+          />
         </div>
       </div>
     </div>
   );
 }
+
