@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import Cookies from 'js-cookie';
 
 export function SSOCallback() {
   const navigate = useNavigate();
@@ -12,7 +13,8 @@ export function SSOCallback() {
     const token = params.get('token');
 
     if (token) {
-      localStorage.setItem('token', token);
+      // Wajib disimpan di Cookies agar terbaca oleh api.ts dan rute terproteksi
+      Cookies.set('token', token, { expires: 1, secure: true, sameSite: 'strict' });
       toast.success('Successfully logged in with Google!');
       // Short delay to ensure localStorage is set and UX feels natural
       setTimeout(() => navigate('/dashboard'), 500);
