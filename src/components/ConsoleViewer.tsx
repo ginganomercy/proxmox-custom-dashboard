@@ -69,7 +69,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         setStatus('connecting');
         const { default: api } = await import('@/lib/api');
         const res = await api.post(`/proxmox/nodes/${node}/${type}/${vmid}/vncproxy`);
-        const { port, ticket } = res.data;
+        const { port, ticket, password } = res.data;
 
         if (!isMounted || !containerRef.current) return;
 
@@ -77,7 +77,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         const wsUrl = `${wsBaseUrl}/console/${node}/${vmid}`;
 
         const rfb = new RFB(containerRef.current, wsUrl, {
-          credentials: { password: ticket },
+          credentials: { password: password || ticket },
           wsProtocols: ['jwt', token],
         });
 
@@ -106,7 +106,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         });
 
         rfb.addEventListener('credentialsrequired', () => {
-          rfb.sendCredentials({ password: ticket });
+          rfb.sendCredentials({ password: password || ticket });
         });
 
         rfb.addEventListener('clipboard', (e: any) => {
