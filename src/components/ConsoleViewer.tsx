@@ -47,6 +47,8 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   const [isScaled, setIsScaled] = useState(true);
   const [viewOnly, setViewOnly] = useState(false);
 
+  const [reconnectTrigger, setReconnectTrigger] = useState(0);
+
   // ─────────────────────────────────────────────────────────────────────────
   // Connection bootstrap
   // ─────────────────────────────────────────────────────────────────────────
@@ -64,6 +66,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
 
     const connectVnc = async () => {
       try {
+        setStatus('connecting');
         const { default: api } = await import('@/lib/api');
         const res = await api.post(`/proxmox/nodes/${node}/${type}/${vmid}/vncproxy`);
         const { port, ticket } = res.data;
@@ -146,7 +149,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         rfbRef.current = null;
       }
     };
-  }, [node, type, vmid]);
+  }, [node, type, vmid, reconnectTrigger]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Toolbar actions
@@ -216,10 +219,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
     }
     setStatus('connecting');
     setErrorMsg('');
-    // Re-triggering useEffect by forcing a re-mount is the cleanest approach.
-    // We do this by briefly unmounting via a key-change in the parent.
-    // As a workaround without a key prop, we manually re-init:
-    window.location.reload();
+    setReconnectTrigger(prev => prev + 1);
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
