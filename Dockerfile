@@ -25,6 +25,12 @@ RUN echo 'server { \
         index index.html index.htm; \
         try_files $uri $uri/ /index.html; \
     } \
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ { \
+        root /usr/share/nginx/html; \
+        try_files $uri =404; \
+        expires 1y; \
+        add_header Cache-Control "public, max-age=31536000, immutable"; \
+    } \
 }' > /etc/nginx/conf.d/default.conf
 
 # Copy built assets from the build stage
