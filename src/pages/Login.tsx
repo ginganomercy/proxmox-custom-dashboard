@@ -27,7 +27,8 @@ export function Login() {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Login failed');
+      const errorMessage = err.response?.data?.error;
+      setError(typeof errorMessage === 'string' ? errorMessage : 'Login failed');
     } finally {
       setIsLoading(false);
     }
