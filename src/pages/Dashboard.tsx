@@ -183,7 +183,7 @@ export function Dashboard() {
           <GlassCard className="md:col-span-2 flex flex-col justify-center relative overflow-hidden">
              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-bl-full opacity-50 pointer-events-none"></div>
              <h2 className="font-semibold text-lg text-slate-700 mb-2">Cluster Status</h2>
-             <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-2 gap-4 mt-4">
                <div>
                  <p className="text-slate-500 text-sm font-medium">Total VMs</p>
                  <p className="text-3xl font-bold text-slate-800">{vms.length}</p>
@@ -193,7 +193,8 @@ export function Dashboard() {
                  <p className="text-3xl font-bold text-blue-600">
                    {vms.filter((v: any) => v.status === 'running').length}
                  </p>
-              </div>
+               </div>
+             </div>
            </GlassCard>
 
            <GlassCard className="flex flex-col justify-center">
