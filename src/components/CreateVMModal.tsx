@@ -52,8 +52,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
         memory,
         storage,
         ciuser,
-        cipassword,
-        ipconfig0
+        cipassword
       };
 
       const res = await api.post('/orders', payload);
@@ -175,10 +174,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
                   <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
                   <input type="password" required value={cipassword} onChange={e => setCipassword(e.target.value)} placeholder="Secure password" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Network Config (ipconfig0)</label>
-                  <input type="text" required value={ipconfig0} onChange={e => setIpconfig0(e.target.value)} placeholder="ip=172.17.2.X/24,gw=172.17.2.1" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all" />
-                </div>
+                {/* IP Configuration is now handled automatically by the backend (Static IP based on VMID) */}
               </div>
             </div>
           )}
