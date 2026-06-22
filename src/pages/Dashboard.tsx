@@ -71,17 +71,12 @@ export function Dashboard() {
         setNodeStatus(statusRes.data);
         setVms(vmsRes.data);
       } else {
-        // Fallback to mock data if Proxmox isn't connected or .env isn't set up
-        setNodeStatus({
-          cpu: 0.24,
-          memory: { used: 16 * 1024 * 1024 * 1024, total: 32 * 1024 * 1024 * 1024 }
-        });
-        setVms([
-          { vmid: 100, name: 'web-server-prod', status: 'running', cpu: 0.12, maxmem: 4294967296, mem: 2147483648 },
-          { vmid: 101, name: 'db-cluster-01', status: 'running', cpu: 0.45, maxmem: 8589934592, mem: 7516192768 },
-          { vmid: 102, name: 'test-env-isolated', status: 'stopped', cpu: 0, maxmem: 2147483648, mem: 0 },
-        ] as any);
-        setError('Could not connect to Proxmox API. Showing mock data.');
+        // Jangan tampilkan mock data di production. Biarkan kosong.
+        setNodeStatus(null);
+        setVms([]);
+        if (targetNode !== 'pve') {
+           setError('Terdapat gangguan koneksi ke server pusat (Proxmox). Hubungi Administrator.');
+        }
       }
     } catch (err) {
       console.error(err);
@@ -157,14 +152,14 @@ export function Dashboard() {
           </div>
         </header>
 
-        {error && (
+        {error && hasItems && (
           <div className="p-4 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-sm font-medium shadow-sm">
             {error}
           </div>
         )}
 
         {/* Onboarding Hero Section (Only shown if user has no VMs and no Orders) */}
-        {!hasItems && !isLoading && !error && (
+        {!hasItems && !isLoading && (
           <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400 opacity-10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
