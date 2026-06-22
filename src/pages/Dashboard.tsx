@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -9,7 +10,19 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { MetricChart } from '@/components/MetricChart';
 import { DataTable } from '@/components/DataTable';
 import { CreateVMModal } from '@/components/CreateVMModal';
-import { LogOut, Server, Activity, RefreshCw, Plus, Rocket, MonitorPlay, Mail, CheckCircle2 } from 'lucide-react';
+import { LogOut, Server, Activity, RefreshCw, Plus, Rocket, MonitorPlay, CheckCircle2, Loader2 } from 'lucide-react';
+
+// Dedicated axios instance with 5-minute timeout for VM provisioning pipeline
+// (Clone → WaitForTask → ResizeDisk → CloudInit → PowerOn can take 2-4 minutes)
+const longApi = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : 'https://cloud-core.pbjt.web.id/api'),
+  timeout: 300000, // 5 minutes
+});
+longApi.interceptors.request.use((config) => {
+  const token = Cookies.get('token');
+  if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -23,6 +36,7 @@ export function Dashboard() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [activatingOrder, setActivatingOrder] = useState<string | null>(null);
   const [activationCodeInput, setActivationCodeInput] = useState<{ [key: string]: string }>({});
+  const [provisionStep, setProvisionStep] = useState<string>('');
 
   const checkAuth = () => {
     const token = Cookies.get('token');
@@ -51,31 +65,33 @@ export function Dashboard() {
         setNodeName('Unknown (Mock)');
       }
 
-      // 2. Fetch node status, instances, user profile, and orders
+      // 2. Fetch node status, instances, user profile, and orders in parallel
       const [statusRes, vmsRes, userRes, ordersRes] = await Promise.all([
         api.get(`/proxmox/nodes/${targetNode}/status`).catch(() => null),
         api.get(`/proxmox/nodes/${targetNode}/instances`).catch(() => null),
-        api.get(`/auth/me`).catch(() => null),
+        api.get(`/auth/me`).catch((e) => e.response || null),
         api.get(`/orders/me`).catch(() => null)
       ]);
 
-      if (userRes?.data) {
-        setUser(userRes.data);
+      // If /auth/me returns 404, the user record is gone (DB was wiped).
+      // Force a clean logout so the user can re-register.
+      if (userRes && (userRes.status === 404 || userRes.data?.error === 'user not found')) {
+        Cookies.remove('token');
+        navigate('/login');
+        return;
       }
 
-      if (ordersRes?.data) {
-        setOrders(ordersRes.data);
-      }
+      if (userRes?.data) setUser(userRes.data);
+      if (ordersRes?.data) setOrders(ordersRes.data);
 
       if (statusRes?.data && vmsRes?.data) {
         setNodeStatus(statusRes.data);
         setVms(vmsRes.data);
       } else {
-        // Jangan tampilkan mock data di production. Biarkan kosong.
         setNodeStatus(null);
         setVms([]);
         if (targetNode !== 'pve') {
-           setError('Terdapat gangguan koneksi ke server pusat (Proxmox). Hubungi Administrator.');
+          setError('Terdapat gangguan koneksi ke server pusat (Proxmox). Hubungi Administrator.');
         }
       }
     } catch (err) {
@@ -97,17 +113,42 @@ export function Dashboard() {
 
   const handleActivateOrder = async (orderId: string) => {
     const code = activationCodeInput[orderId];
-    if (!code) return;
+    if (!code?.trim()) return;
     
     setActivatingOrder(orderId);
+    setProvisionStep('Menginisiasi koneksi ke cluster Proxmox...');
+    
+    // Simulate progressive loading steps for UX (real steps run on backend)
+    const steps = [
+      { msg: 'Mengalokasikan VMID baru dari cluster...', delay: 2000 },
+      { msg: 'Mengkloning template VM (proses 1-2 menit)...', delay: 5000 },
+      { msg: 'Menunggu konfirmasi clone selesai...', delay: 10000 },
+      { msg: 'Menyesuaikan ukuran disk...', delay: 20000 },
+      { msg: 'Menerapkan konfigurasi Cloud-Init (CPU, RAM, IP)...', delay: 35000 },
+      { msg: 'Menyalakan VM...', delay: 50000 },
+      { msg: 'Mendaftarkan VM ke database Anda...', delay: 65000 },
+    ];
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    steps.forEach(s => {
+      timers.push(setTimeout(() => setProvisionStep(s.msg), s.delay));
+    });
+
     try {
-      await api.post(`/orders/${orderId}/activate`, { code });
-      alert('VM Successfully Provisioned! Please refresh the page if the VM does not appear immediately.');
-      fetchData();
+      // Use longApi (5 min timeout) — provisioning pipeline is slow by nature
+      await longApi.post(`/orders/${orderId}/activate`, { code: code.trim() });
+      timers.forEach(clearTimeout);
+      setProvisionStep('✅ VM berhasil dibuat dan dinyalakan!');
+      setTimeout(() => {
+        setActivatingOrder(null);
+        setProvisionStep('');
+        fetchData();
+      }, 2000);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to activate order');
-    } finally {
+      timers.forEach(clearTimeout);
       setActivatingOrder(null);
+      setProvisionStep('');
+      const msg = err.response?.data?.error || err.response?.data?.details || err.message || 'Gagal mengaktifkan order';
+      alert(`❌ Aktivasi gagal: ${msg}`);
     }
   };
 
@@ -115,6 +156,33 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
+      {/* ── VM Provisioning Full-Screen Overlay ──────────────────────────────── */}
+      {activatingOrder && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-5">
+              {provisionStep.startsWith('✅') ? (
+                <CheckCircle2 className="w-8 h-8 text-green-500" />
+              ) : (
+                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+              )}
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 mb-2">
+              {provisionStep.startsWith('✅') ? 'VM Siap!' : 'Menyiapkan Virtual Machine...'}
+            </h2>
+            <p className="text-sm text-slate-500 mb-6 leading-relaxed">{provisionStep}</p>
+            {!provisionStep.startsWith('✅') && (
+              <div className="space-y-2">
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-pulse" style={{ width: '70%' }} />
+                </div>
+                <p className="text-xs text-slate-400">Harap jangan tutup atau refresh halaman ini</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Decorative background blobs */}
       <div className="fixed top-[-5%] right-[-5%] w-[40rem] h-[40rem] bg-blue-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
       <div className="fixed bottom-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-indigo-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
