@@ -52,7 +52,8 @@ interface InstanceManageModalProps {
 }
 
 export default function InstanceManageModal({ vm, nodeName, onClose }: InstanceManageModalProps) {
-  const [activeTab, setActiveTab] = useState<'network' | 'snapshots' | 'rebuild'>('network');
+  const [activeTab, setActiveTab] = useState<'network' | 'snapshots' | 'rebuild' | 'danger'>('network');
+  const [destroyConfirmName, setDestroyConfirmName] = useState('');
   const [network, setNetwork] = useState<NetworkInfo | null>(null);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -180,6 +181,24 @@ export default function InstanceManageModal({ vm, nodeName, onClose }: InstanceM
     }
   };
 
+  const handleDestroy = async () => {
+    if (destroyConfirmName !== vm.name) return;
+    
+    setActionLoading(true);
+    setError('');
+    try {
+      await api.delete(`/proxmox/nodes/${nodeName}/${type}/${vm.vmid}`);
+      alert('VM has been permanently deleted.');
+      onClose();
+      window.location.reload(); 
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.error || 'Failed to destroy VPS.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const formatBytes = (bytes: number) => {
     if (!bytes) return '0 B';
     const k = 1024;
@@ -254,6 +273,18 @@ export default function InstanceManageModal({ vm, nodeName, onClose }: InstanceM
           >
             <ShieldAlert className="w-4 h-4" />
             Rebuild OS
+          </button>
+          <button
+            onClick={() => setActiveTab('danger')}
+            className={cn(
+              "flex items-center gap-2 py-4 px-3 text-sm font-semibold border-b-2 transition-all",
+              activeTab === 'danger'
+                ? "border-red-600 text-red-600"
+                : "border-transparent text-slate-500 hover:text-red-600"
+            )}
+          >
+            <Trash2 className="w-4 h-4" />
+            Danger Zone
           </button>
         </div>
 
@@ -474,6 +505,48 @@ export default function InstanceManageModal({ vm, nodeName, onClose }: InstanceM
                       className="w-full py-4 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-500/20 hover:shadow-red-500/35 transition-all text-base transform active:scale-95 disabled:opacity-50"
                     >
                       {actionLoading ? 'Initiating Rebuild...' : 'I Understand, Rebuild OS Now'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* DANGER TAB */}
+              {activeTab === 'danger' && (
+                <div className="space-y-6 max-w-xl mx-auto py-4 text-center">
+                  <div className="bg-red-50 border border-red-200 p-6 rounded-3xl text-center space-y-4 shadow-sm">
+                    <div className="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                      <Trash2 className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-red-800 uppercase tracking-wide">Danger Zone: Destroy VM</h3>
+                      <p className="text-sm text-red-700 mt-2 leading-relaxed font-semibold">
+                        Tindakan ini bersifat PERMANEN dan TIDAK BISA DIBATALKAN.
+                        Seluruh data, file, dan konfigurasi akan dimusnahkan. <br/><br/>
+                        <span className="font-black bg-red-200 px-2 py-1 rounded">WARNING: NO REFUNDS.</span><br/>
+                        Uang yang telah Anda bayarkan untuk server ini tidak akan dikembalikan jika Anda menghapusnya.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                    <p className="text-sm text-slate-600 font-medium">
+                      Untuk mengonfirmasi penghapusan, ketik ulang nama VM di bawah ini:
+                      <br/>
+                      <span className="font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded mt-2 inline-block select-all">{vm.name}</span>
+                    </p>
+                    <input
+                      type="text"
+                      value={destroyConfirmName}
+                      onChange={(e) => setDestroyConfirmName(e.target.value)}
+                      placeholder={vm.name}
+                      className="w-full text-center px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/20 font-mono font-bold text-slate-800 transition-all"
+                    />
+                    <button
+                      onClick={handleDestroy}
+                      disabled={actionLoading || destroyConfirmName !== vm.name}
+                      className="w-full py-4 px-6 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl shadow-lg shadow-red-500/30 hover:shadow-red-500/50 transition-all text-base transform active:scale-95 disabled:opacity-50 disabled:active:scale-100 uppercase tracking-widest flex items-center justify-center gap-2"
+                    >
+                      {actionLoading ? 'Destroying...' : 'DESTROY SERVER NOW'}
                     </button>
                   </div>
                 </div>
