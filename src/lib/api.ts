@@ -15,4 +15,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor to handle 401 Unauthorized globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Token expired or invalid
+      Cookies.remove('token');
+      // Redirect to login page only if we aren't already there
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
