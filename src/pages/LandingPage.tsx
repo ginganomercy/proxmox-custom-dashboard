@@ -42,9 +42,9 @@ export function LandingPage() {
       <header className="relative z-20 border-b border-slate-100 bg-white/60 backdrop-blur-md sticky top-0">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="bg-blue-600 text-white p-2 rounded-xl shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform duration-200">
-              <Server className="w-5 h-5" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform duration-200 bg-transparent">
+              <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
               Cloud Baja Tegal (CBT)
@@ -489,9 +489,9 @@ export function LandingPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-slate-100 bg-white/40 py-8 text-center text-xs text-slate-400 font-medium">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="bg-blue-600 text-white p-1 rounded-md">
-              <Server className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-md overflow-hidden bg-transparent">
+              <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
             </div>
             <span className="font-bold text-slate-800">Cloud Baja Tegal (CBT)</span>
           </div>

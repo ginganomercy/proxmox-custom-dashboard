@@ -325,8 +325,8 @@ export function AdminDashboard() {
       ════════════════════════════════════════════════════════════════ */}
       <aside className="lg:w-72 bg-[#0b162c] text-white flex flex-col flex-shrink-0 border-r border-slate-800 shadow-xl z-20 lg:sticky lg:top-0 lg:h-screen">
         <div className="p-6 border-b border-slate-800/80 flex items-center gap-3.5">
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-500/30">
-            <ShieldCheck className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/30 bg-transparent">
+            <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="font-bold text-lg tracking-tight text-white">Admin Control</h1>

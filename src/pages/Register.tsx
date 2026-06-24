@@ -50,8 +50,8 @@ export function Register() {
       
       <GlassCard className="w-full max-w-md p-8 relative z-10">
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-indigo-50 p-4 rounded-full mb-4 shadow-sm shadow-indigo-200/50">
-            <UserPlus className="w-8 h-8 text-indigo-600" />
+          <div className="w-16 h-16 mb-4 shadow-xl shadow-indigo-500/20 rounded-2xl overflow-hidden bg-transparent transform hover:scale-105 transition-transform duration-200">
+            <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-slate-800">Create an Account</h1>
           <p className="text-slate-500 text-sm mt-1">Join Cloud Baja Tegal (CBT)</p>

@@ -58,8 +58,8 @@ export function Login() {
       
       <GlassCard className="w-full max-w-md p-8 relative z-10">
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-blue-50 p-4 rounded-full mb-4 shadow-sm shadow-blue-200/50">
-            <Server className="w-8 h-8 text-blue-600" />
+          <div className="w-16 h-16 mb-4 shadow-xl shadow-blue-500/20 rounded-2xl overflow-hidden bg-transparent transform hover:scale-105 transition-transform duration-200">
+            <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-slate-800">Cloud Baja Tegal (CBT)</h1>
           <p className="text-slate-500 text-sm mt-1">Infrastructure Dashboard</p>

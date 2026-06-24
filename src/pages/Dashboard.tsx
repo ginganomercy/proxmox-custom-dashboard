@@ -232,9 +232,9 @@ export function Dashboard() {
         
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-500 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
-              <Server className="w-6 h-6" />
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg shadow-blue-500/20 bg-transparent">
+              <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-800">Cloud Baja Tegal (CBT)</h1>
