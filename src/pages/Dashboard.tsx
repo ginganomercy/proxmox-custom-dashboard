@@ -37,6 +37,7 @@ export function Dashboard() {
   const [activatingOrder, setActivatingOrder] = useState<string | null>(null);
   const [activationCodeInput, setActivationCodeInput] = useState<{ [key: string]: string }>({});
   const [provisionStep, setProvisionStep] = useState<string>('');
+  const [successMsg, setSuccessMsg] = useState<string>('');
 
   const checkAuth = () => {
     const token = Cookies.get('token');
@@ -187,7 +188,8 @@ export function Dashboard() {
     }
   };
 
-  const hasItems = vms.length > 0 || orders.length > 0;
+  const activeOrders = orders.filter(o => o.status === 'PENDING' || o.status === 'READY_TO_ACTIVATE' || o.status === 'FAILED');
+  const hasItems = vms.length > 0 || activeOrders.length > 0;
 
   return (
     <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
@@ -267,6 +269,15 @@ export function Dashboard() {
         {error && hasItems && (
           <div className="p-4 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-sm font-medium shadow-sm">
             {error}
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-sm font-semibold shadow-sm animate-in fade-in duration-300">
+            <div className="p-1 bg-emerald-500 text-white rounded-lg shadow-sm">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <span>{successMsg}</span>
           </div>
         )}
 
@@ -405,8 +416,22 @@ export function Dashboard() {
           <GlassCard>
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-semibold text-lg text-slate-700">Virtual Machines & LXC</h2>
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-md"
+              >
+                <Plus className="w-4 h-4" /> Pesan VM Baru
+              </button>
             </div>
-            <DataTable data={vms} isLoading={isLoading} nodeName={nodeName} />
+            <DataTable 
+              data={vms} 
+              isLoading={isLoading} 
+              nodeName={nodeName} 
+              onDeleteSuccess={() => {
+                setSuccessMsg('Virtual Machine berhasil dihapus secara permanen dari sistem.');
+                fetchData(false);
+              }} 
+            />
           </GlassCard>
         )}
 

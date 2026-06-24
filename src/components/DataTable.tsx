@@ -24,6 +24,7 @@ interface VM {
 interface DataTableProps {
   data: VM[];
   isLoading?: boolean;
+  onDeleteSuccess?: () => void;
 }
 
 function IPBadge({ nodeName, vm }: { nodeName: string, vm: VM }) {
@@ -55,7 +56,7 @@ function IPBadge({ nodeName, vm }: { nodeName: string, vm: VM }) {
   );
 }
 
-export function DataTable({ data, isLoading, nodeName = 'Capybara' }: DataTableProps & { nodeName?: string }) {
+export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSuccess }: DataTableProps & { nodeName?: string }) {
   const [activeConsole, setActiveConsole] = useState<VM | null>(null);
   const [activeManage, setActiveManage] = useState<VM | null>(null);
   const [activeConfig, setActiveConfig] = useState<VM | null>(null);
@@ -256,16 +257,15 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara' }: DataTableP
         </tbody>
       </table>
 
-      {/* Console Modal — near-fullscreen by default, native Fullscreen API on demand */}
+      {/* Console Modal — beautifully proportioned desktop window by default, native Fullscreen API on demand */}
       {activeConsole && (
         <div
           ref={consoleModalRef}
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm"
         >
-          {/* 97vw × 97vh so the console uses almost the entire viewport */}
+          {/* Ergonomic framing matching premium cPanel Jupiter dimensions */}
           <div
-            className="flex flex-col bg-slate-900 border border-slate-700 shadow-2xl rounded-xl overflow-hidden"
-            style={{ width: '97vw', height: '97vh' }}
+            className="flex flex-col bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl overflow-hidden w-full max-w-6xl h-[75vh] max-h-[700px] min-h-[500px]"
           >
             {/* Modal title bar */}
             <div className="flex items-center justify-between px-4 py-2.5 bg-[#1a2035] border-b border-slate-700 flex-shrink-0">
@@ -321,6 +321,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara' }: DataTableP
           vm={activeManage}
           nodeName={nodeName}
           onClose={() => setActiveManage(null)}
+          onDeleteSuccess={onDeleteSuccess}
         />
       )}
       {activeConfig && (

@@ -49,9 +49,10 @@ interface InstanceManageModalProps {
   vm: VM;
   nodeName: string;
   onClose: () => void;
+  onDeleteSuccess?: () => void;
 }
 
-export default function InstanceManageModal({ vm, nodeName, onClose }: InstanceManageModalProps) {
+export default function InstanceManageModal({ vm, nodeName, onClose, onDeleteSuccess }: InstanceManageModalProps) {
   const [activeTab, setActiveTab] = useState<'network' | 'snapshots' | 'rebuild' | 'danger'>('network');
   const [destroyConfirmName, setDestroyConfirmName] = useState('');
   const [network, setNetwork] = useState<NetworkInfo | null>(null);
@@ -190,9 +191,12 @@ export default function InstanceManageModal({ vm, nodeName, onClose }: InstanceM
     setError('');
     try {
       await api.delete(`/proxmox/nodes/${nodeName}/${type}/${vm.vmid}`);
-      alert('VM has been permanently deleted.');
       onClose();
-      window.location.reload(); 
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      } else {
+        window.location.reload(); 
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.error || 'Failed to destroy VPS.');

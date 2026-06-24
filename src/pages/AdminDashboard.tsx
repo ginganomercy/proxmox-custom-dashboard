@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import {
   LogOut, Server, Activity, Cpu, MemoryStick, HardDrive, Clock,
-  ShieldCheck, Users, TrendingUp, ChevronRight, RefreshCw, CheckCircle, Copy
+  ShieldCheck, Users, TrendingUp, ChevronRight, RefreshCw, CheckCircle, Copy, FileText, Terminal
 } from 'lucide-react';
 
 // ─── Helper Utilities ──────────────────────────────────────────────────────────
@@ -103,19 +103,46 @@ function SectionCard({ children, className = '' }: SectionCardProps) {
 export function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'vms'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'vms' | 'logs'>('orders');
   
   // Data States
   const [summary, setSummary] = useState<any>({ total_orders: 0, pending_orders: 0 });
   const [nodeStatus, setNodeStatus] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [allVms, setAllVms] = useState<any[]>([]);
+  const [clusterLogs, setClusterLogs] = useState<any[]>([]);
   const [targetNode, setTargetNode] = useState('pve');
   
   // Independent Loading States
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [isLoadingVms, setIsLoadingVms] = useState(false);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+
+  // Lazy Load Cluster Logs (Anti-Race Condition)
+  useEffect(() => {
+    if (activeTab !== 'logs') return;
+    const controller = new AbortController();
+    
+    const fetchLogs = async (silent = false) => {
+      if (!silent) setIsLoadingLogs(true);
+      try {
+        const res = await api.get('/proxmox/cluster/logs', { signal: controller.signal });
+        if (res.data) setClusterLogs(res.data);
+      } catch (err: any) {
+        if (err.name !== 'CanceledError') console.error('Cluster logs fetch failed:', err);
+      } finally {
+        if (!silent) setIsLoadingLogs(false);
+      }
+    };
+    
+    fetchLogs(false);
+    const interval = setInterval(() => fetchLogs(true), 15000); // stable 15s auto-refresh
+    return () => {
+      clearInterval(interval);
+      controller.abort();
+    };
+  }, [activeTab]);
 
   // Form States
   const [copiedCode, setCopiedCode] = useState('');
@@ -259,53 +286,112 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 relative">
-      {/* Decorative blobs */}
-      <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-indigo-100 rounded-full filter blur-[120px] opacity-40 pointer-events-none" />
-      <div className="fixed bottom-0 left-0 w-[300px] h-[300px] bg-purple-100 rounded-full filter blur-[100px] opacity-30 pointer-events-none" />
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row relative">
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 1: Left Sidebar (cPanel Jupiter Inspired Premium Navy Theme)
+      ════════════════════════════════════════════════════════════════ */}
+      <aside className="lg:w-72 bg-[#0b162c] text-white flex flex-col flex-shrink-0 border-r border-slate-800 shadow-xl z-20 lg:sticky lg:top-0 lg:h-screen">
+        <div className="p-6 border-b border-slate-800/80 flex items-center gap-3.5">
+          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-500/30">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="font-bold text-lg tracking-tight text-white">Admin Control</h1>
+            <p className="text-xs text-indigo-300 font-medium">Cloud Baja Tegal</p>
+          </div>
+        </div>
+        
+        {/* Navigation Links */}
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+          <div className="text-[11px] font-bold text-slate-400 px-3 mb-3 uppercase tracking-wider">Kluster & Manajemen</div>
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
+              activeTab === 'orders'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
+                : 'text-slate-300 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-3.5">
+              <Users className="w-5 h-5" />
+              <span>Customer Orders</span>
+            </div>
+            {summary?.pending_orders > 0 && (
+              <span className="px-2.5 py-0.5 bg-amber-500 text-slate-900 text-xs font-bold rounded-full shadow-sm">
+                {summary.pending_orders}
+              </span>
+            )}
+          </button>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-6 relative z-10">
+          <button
+            onClick={() => setActiveTab('vms')}
+            className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
+              activeTab === 'vms'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
+                : 'text-slate-300 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <Server className="w-5 h-5" />
+            <span>All Instances</span>
+          </button>
 
-        {/* ════════════════════════════════════════════════════════════════
-            SECTION 1: Header
-        ════════════════════════════════════════════════════════════════ */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 px-5">
+          <button
+            onClick={() => setActiveTab('logs')}
+            className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
+              activeTab === 'logs'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
+                : 'text-slate-300 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <FileText className="w-5 h-5" />
+            <span>Cluster Logs</span>
+          </button>
+        </nav>
+
+        {/* Bottom Actions */}
+        <div className="p-5 border-t border-slate-800/80 space-y-3">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 text-indigo-200 rounded-2xl text-sm font-semibold transition-all border border-white/10"
+          >
+            <Users className="w-4 h-4" />
+            <span>Customer View</span>
+          </button>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-2xl text-sm font-semibold transition-all border border-red-500/10"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ════════════════════════════════════════════════════════════════
+          SECTION 2: Main Content Area
+      ════════════════════════════════════════════════════════════════ */}
+      <main className="flex-1 flex flex-col min-w-0 bg-slate-50 relative z-10 overflow-y-auto">
+        {/* Sticky Top Bar */}
+        <header className="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-500/30">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-slate-800">Admin Control Center</h1>
-              <p className="text-xs text-slate-500 font-medium">Cloud Baja Tegal — Cluster: <span className="font-semibold text-indigo-600">{targetNode}</span></p>
-            </div>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-800">
+              {activeTab === 'orders' ? 'Customer Orders Management' : activeTab === 'vms' ? 'Node Instances Overview' : 'System Cluster Logs'}
+            </h2>
+            <span className="text-xs px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full font-bold border border-indigo-100 hidden sm:inline-block">
+              Cluster: {targetNode}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-sm font-semibold transition-all border border-indigo-100"
-            >
-              <Users className="w-4 h-4" />
-              Customer View
-            </button>
-            <button
-              onClick={() => {
-                fetchGlobalData();
-              }}
-              disabled={isLoadingSummary}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition-all"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoadingSummary ? 'animate-spin' : ''}`} />
-              Refresh Node
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-medium transition-all border border-red-100"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
-          </div>
+          <button
+            onClick={() => { fetchGlobalData(); }}
+            disabled={isLoadingSummary}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoadingSummary ? 'animate-spin' : ''}`} />
+            <span>Refresh Status</span>
+          </button>
         </header>
+
+        <div className="p-6 sm:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
         {/* ════════════════════════════════════════════════════════════════
             SECTION 2: Quick Stats Row
@@ -432,35 +518,9 @@ export function AdminDashboard() {
         </SectionCard>
 
         {/* ════════════════════════════════════════════════════════════════
-            SECTION 4: Tabbed Management Area
+            SECTION 4: Active View Area
         ════════════════════════════════════════════════════════════════ */}
         <SectionCard>
-          {/* Tab Navigation */}
-          <div className="flex gap-1 p-4 border-b border-slate-100 bg-slate-50/50">
-            {([
-              { key: 'orders', label: 'Customer Orders', icon: <Users className="w-4 h-4" />, badge: summary?.pending_orders > 0 ? summary.pending_orders : null },
-              { key: 'vms', label: 'All Instances', icon: <Server className="w-4 h-4" />, badge: null },
-            ] as const).map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                  activeTab === tab.key
-                    ? 'bg-white text-indigo-700 shadow-sm border border-indigo-100'
-                    : 'text-slate-500 hover:text-slate-700 hover:bg-white/60'
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-                {tab.badge !== null && (
-                  <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-full">
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-
           {/* ── Tab: Customer Orders ────────────────────────────────────── */}
           {activeTab === 'orders' && (
             <div className="p-5">
@@ -627,6 +687,63 @@ export function AdminDashboard() {
               </div>
             </div>
           )}
+
+          {/* ── Tab: Cluster Logs ────────────────────────────────────── */}
+          {activeTab === 'logs' && (
+            <div className="p-5">
+              <SectionHeader
+                icon={<FileText className="w-5 h-5" />}
+                title="Proxmox Cluster Task Logs"
+                subtitle="Live execution audit logs across the Proxmox VE cluster. Shows task status, executing user, target node, and timestamps."
+              />
+              <div className="bg-[#0b162c] rounded-2xl border border-slate-800 shadow-inner overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/50">
+                  <span className="text-xs font-bold text-indigo-300 uppercase tracking-widest flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-blue-400" /> System Event Firehose
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">Auto-refreshes every 15s</span>
+                </div>
+                <div className="p-2 overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-800/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <th className="py-3 px-4">Timestamp</th>
+                        <th className="py-3 px-4">User / Performer</th>
+                        <th className="py-3 px-4">Node</th>
+                        <th className="py-3 px-4">Task Type / Action</th>
+                        <th className="py-3 px-4 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-xs font-mono text-slate-300 divide-y divide-slate-800/50">
+                      {isLoadingLogs && clusterLogs.length === 0 ? (
+                        <tr><td colSpan={5} className="py-12 text-center text-slate-500 animate-pulse">Fetching cluster logs...</td></tr>
+                      ) : clusterLogs.map((logItem, idx) => {
+                        const dateObj = new Date((logItem.starttime || logItem.time || 0) * 1000);
+                        const timeStr = dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' });
+                        const isOK = logItem.status === 'OK';
+                        return (
+                          <tr key={idx} className="hover:bg-white/5 transition-colors">
+                            <td className="py-3 px-4 text-slate-400 whitespace-nowrap">{timeStr}</td>
+                            <td className="py-3 px-4 text-indigo-300 font-semibold">{logItem.user || 'root@pam'}</td>
+                            <td className="py-3 px-4 text-slate-400">{logItem.node || targetNode}</td>
+                            <td className="py-3 px-4 text-slate-200 font-medium">{logItem.id ? `${logItem.type} (${logItem.id})` : logItem.type || logItem.msg || 'cluster task'}</td>
+                            <td className="py-3 px-4 text-right">
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase ${isOK ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                {logItem.status || 'PROG'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {clusterLogs.length === 0 && !isLoadingLogs && (
+                        <tr><td colSpan={5} className="py-12 text-center text-slate-500">No recent log entries found.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </SectionCard>
 
         {/* Footer */}
@@ -636,6 +753,7 @@ export function AdminDashboard() {
         </div>
 
       </div>
-    </div>
+    </main>
+  </div>
   );
 }
