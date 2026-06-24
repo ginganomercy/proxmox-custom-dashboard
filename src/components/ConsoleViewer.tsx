@@ -380,10 +380,10 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         className="relative flex-1 bg-black overflow-hidden"
         style={{ minHeight: 0 }}
       >
-        {/* noVNC mounts its canvas into this div. It must be positioned to fill. */}
+        {/* noVNC mounts its canvas into this div. It must be positioned to fill and center perfectly in 4:3 frame. */}
         <div
           ref={containerRef}
-          className="absolute inset-0"
+          className="absolute inset-0 flex items-center justify-center bg-black"
           style={{ width: '100%', height: '100%' }}
         />
 
