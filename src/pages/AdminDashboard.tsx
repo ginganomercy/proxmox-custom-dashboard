@@ -105,6 +105,7 @@ export function AdminDashboard() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'orders' | 'vms' | 'logs'>('orders');
+  const [logTab, setLogTab] = useState<'tasks' | 'clusterlog'>('tasks');
   
   // Data States
   const [summary, setSummary] = useState<any>({ total_orders: 0, pending_orders: 0 });
@@ -112,6 +113,7 @@ export function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [allVms, setAllVms] = useState<any[]>([]);
   const [clusterLogs, setClusterLogs] = useState<any[]>([]);
+  const [clusterTasks, setClusterTasks] = useState<any[]>([]);
   const [targetNode, setTargetNode] = useState('pve');
   
   // Independent Loading States
@@ -119,10 +121,36 @@ export function AdminDashboard() {
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [isLoadingVms, setIsLoadingVms] = useState(false);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
+
+  // Lazy Load Cluster Tasks (Anti-Race Condition)
+  useEffect(() => {
+    if (activeTab !== 'logs' || logTab !== 'tasks') return;
+    const controller = new AbortController();
+    
+    const fetchTasks = async (silent = false) => {
+      if (!silent) setIsLoadingTasks(true);
+      try {
+        const res = await api.get('/proxmox/cluster/tasks', { signal: controller.signal });
+        if (res.data) setClusterTasks(res.data);
+      } catch (err: any) {
+        if (err.name !== 'CanceledError') console.error('Cluster tasks fetch failed:', err);
+      } finally {
+        if (!silent) setIsLoadingTasks(false);
+      }
+    };
+    
+    fetchTasks(false);
+    const interval = setInterval(() => fetchTasks(true), 15000); // stable 15s auto-refresh
+    return () => {
+      clearInterval(interval);
+      controller.abort();
+    };
+  }, [activeTab, logTab]);
 
   // Lazy Load Cluster Logs (Anti-Race Condition)
   useEffect(() => {
-    if (activeTab !== 'logs') return;
+    if (activeTab !== 'logs' || logTab !== 'clusterlog') return;
     const controller = new AbortController();
     
     const fetchLogs = async (silent = false) => {
@@ -143,7 +171,7 @@ export function AdminDashboard() {
       clearInterval(interval);
       controller.abort();
     };
-  }, [activeTab]);
+  }, [activeTab, logTab]);
 
   // Form States
   const [copiedCode, setCopiedCode] = useState('');
@@ -641,54 +669,124 @@ export function AdminDashboard() {
             <div className="p-5">
               <SectionHeader
                 icon={<FileText className="w-5 h-5" />}
-                title="Proxmox Cluster Task Logs"
-                subtitle="Live execution audit logs across the Proxmox VE cluster. Shows task status, executing user, target node, and timestamps."
+                title="Proxmox Cluster Logs & Tasks"
+                subtitle="Authentic Proxmox VE cluster execution audit logs. Switch between worker Tasks history and live system daemon Cluster log."
               />
               <div className="bg-[#0b162c] rounded-2xl border border-slate-800 shadow-inner overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/50">
-                  <span className="text-xs font-bold text-indigo-300 uppercase tracking-widest flex items-center gap-2">
-                    <Terminal className="w-4 h-4 text-blue-400" /> System Event Firehose
-                  </span>
+                {/* Proxmox VE Authentic Sub-tab Toggle Bar */}
+                <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900/80">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setLogTab('tasks')}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'tasks' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-800/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+                    >
+                      <Terminal className="w-3.5 h-3.5" /> Tasks
+                    </button>
+                    <button
+                      onClick={() => setLogTab('clusterlog')}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'clusterlog' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-800/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+                    >
+                      <FileText className="w-3.5 h-3.5" /> Cluster log
+                    </button>
+                  </div>
                   <span className="text-xs text-slate-400 font-medium">Auto-refreshes every 15s</span>
                 </div>
-                <div className="p-2 overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-800/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        <th className="py-3 px-4">Timestamp</th>
-                        <th className="py-3 px-4">User / Performer</th>
-                        <th className="py-3 px-4">Node</th>
-                        <th className="py-3 px-4">Task Type / Action</th>
-                        <th className="py-3 px-4 text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-xs font-mono text-slate-300 divide-y divide-slate-800/50">
-                      {isLoadingLogs && clusterLogs.length === 0 ? (
-                        <tr><td colSpan={5} className="py-12 text-center text-slate-500 animate-pulse">Fetching cluster logs...</td></tr>
-                      ) : clusterLogs.map((logItem, idx) => {
-                        const dateObj = new Date((logItem.starttime || logItem.time || 0) * 1000);
-                        const timeStr = dateObj.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' });
-                        const isOK = logItem.status === 'OK';
-                        return (
-                          <tr key={idx} className="hover:bg-white/5 transition-colors">
-                            <td className="py-3 px-4 text-slate-400 whitespace-nowrap">{timeStr}</td>
-                            <td className="py-3 px-4 text-indigo-300 font-semibold">{logItem.user || 'root@pam'}</td>
-                            <td className="py-3 px-4 text-slate-400">{logItem.node || targetNode}</td>
-                            <td className="py-3 px-4 text-slate-200 font-medium">{logItem.id ? `${logItem.type} (${logItem.id})` : logItem.type || logItem.msg || 'cluster task'}</td>
-                            <td className="py-3 px-4 text-right">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase ${isOK ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                                {logItem.status || 'PROG'}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {clusterLogs.length === 0 && !isLoadingLogs && (
-                        <tr><td colSpan={5} className="py-12 text-center text-slate-500">No recent log entries found.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+
+                {logTab === 'tasks' ? (
+                  <div className="p-2 overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                          <th className="py-3 px-4">Start Time ↓</th>
+                          <th className="py-3 px-4">End Time</th>
+                          <th className="py-3 px-4">Node</th>
+                          <th className="py-3 px-4">User name</th>
+                          <th className="py-3 px-4">Description</th>
+                          <th className="py-3 px-4">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-xs font-mono text-slate-300 divide-y divide-slate-800/50">
+                        {isLoadingTasks && clusterTasks.length === 0 ? (
+                          <tr><td colSpan={6} className="py-12 text-center text-slate-500 animate-pulse">Fetching cluster tasks...</td></tr>
+                        ) : clusterTasks.map((taskItem, idx) => {
+                          const startObj = new Date((taskItem.starttime || 0) * 1000);
+                          const startStr = startObj.toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                          const endObj = new Date((taskItem.endtime || taskItem.starttime || 0) * 1000);
+                          const endStr = endObj.toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                          
+                          // Format Description exactly like Proxmox VE (e.g. VM 104 - Destroy, VM 104 - Stop, Update package database)
+                          let description = taskItem.type || 'Task';
+                          if (taskItem.type === 'qemudestroy') description = `VM ${taskItem.id || ''} - Destroy`;
+                          else if (taskItem.type === 'qemustop') description = `VM ${taskItem.id || ''} - Stop`;
+                          else if (taskItem.type === 'qemustart') description = `VM ${taskItem.id || ''} - Start`;
+                          else if (taskItem.type === 'qemucreate') description = `VM ${taskItem.id || ''} - Create`;
+                          else if (taskItem.type === 'qemushutdown') description = `VM ${taskItem.id || ''} - Shutdown`;
+                          else if (taskItem.type === 'aptupdate') description = `Update package database`;
+                          else if (taskItem.id) description = `VM ${taskItem.id} - ${taskItem.type}`;
+
+                          const statusText = taskItem.status || 'PROG';
+                          const isOK = statusText === 'OK';
+                          
+                          return (
+                            <tr key={idx} className={`transition-colors ${isOK ? 'hover:bg-white/5' : 'bg-red-500/15 hover:bg-red-500/25 text-red-200'}`}>
+                              <td className="py-3 px-4 text-slate-400 whitespace-nowrap">{startStr}</td>
+                              <td className="py-3 px-4 text-slate-400 whitespace-nowrap">{endStr}</td>
+                              <td className="py-3 px-4 text-slate-300">{taskItem.node || targetNode}</td>
+                              <td className="py-3 px-4 text-indigo-300 font-semibold">{taskItem.user || 'root@pam'}</td>
+                              <td className="py-3 px-4 font-medium">{description}</td>
+                              <td className="py-3 px-4">
+                                {isOK ? (
+                                  <span className="text-emerald-400 font-bold">OK</span>
+                                ) : (
+                                  <span className="text-red-300 font-bold">{statusText}</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {clusterTasks.length === 0 && !isLoadingTasks && (
+                          <tr><td colSpan={6} className="py-12 text-center text-slate-500">No recent tasks found.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-2 overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                          <th className="py-3 px-4">Time</th>
+                          <th className="py-3 px-4">Node</th>
+                          <th className="py-3 px-4">Service</th>
+                          <th className="py-3 px-4">PID</th>
+                          <th className="py-3 px-4">User name</th>
+                          <th className="py-3 px-4">Message</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-xs font-mono text-slate-300 divide-y divide-slate-800/50">
+                        {isLoadingLogs && clusterLogs.length === 0 ? (
+                          <tr><td colSpan={6} className="py-12 text-center text-slate-500 animate-pulse">Fetching cluster logs...</td></tr>
+                        ) : clusterLogs.map((logItem, idx) => {
+                          const dateObj = new Date((logItem.time || 0) * 1000);
+                          const timeStr = dateObj.toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                          return (
+                            <tr key={idx} className="hover:bg-white/5 transition-colors">
+                              <td className="py-3 px-4 text-slate-400 whitespace-nowrap">{timeStr}</td>
+                              <td className="py-3 px-4 text-slate-400">{logItem.node || targetNode}</td>
+                              <td className="py-3 px-4 text-amber-300/90">{logItem.tag || 'pvedaemon'}</td>
+                              <td className="py-3 px-4 text-slate-500">{logItem.pid || 'N/A'}</td>
+                              <td className="py-3 px-4 text-indigo-300 font-semibold">{logItem.user || 'root@pam'}</td>
+                              <td className="py-3 px-4 text-slate-200 font-medium">{logItem.msg || logItem.type || 'cluster event'}</td>
+                            </tr>
+                          );
+                        })}
+                        {clusterLogs.length === 0 && !isLoadingLogs && (
+                          <tr><td colSpan={6} className="py-12 text-center text-slate-500">No recent log entries found.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}
