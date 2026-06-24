@@ -19,6 +19,10 @@ interface VM {
   disk?: number;
   maxdisk?: number;
   uptime?: number;
+  netin?: number;
+  netout?: number;
+  diskread?: number;
+  diskwrite?: number;
 }
 
 interface DataTableProps {
@@ -118,6 +122,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
             <th className="py-4 px-2 font-semibold text-slate-500 text-sm">CPU</th>
             <th className="py-4 px-2 font-semibold text-slate-500 text-sm">Memory</th>
             <th className="py-4 px-2 font-semibold text-slate-500 text-sm">Disk Usage</th>
+            <th className="py-4 px-2 font-semibold text-slate-500 text-sm">Network & I/O</th>
             <th className="py-4 px-2 font-semibold text-slate-500 text-sm text-right">Actions</th>
           </tr>
         </thead>
@@ -193,8 +198,18 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                     </div>
                   </div>
                   <span className="text-[10px] font-medium text-slate-500">
-                    {formatBytes(vm.disk || 0)} / {formatBytes(vm.maxdisk || 0)}
+                    {vm.disk ? `${formatBytes(vm.disk)} / ${formatBytes(vm.maxdisk || 0)}` : `Allocated: ${formatBytes(vm.maxdisk || 0)}`}
                   </span>
+                </div>
+              </td>
+              <td className="py-4 px-2 text-slate-600">
+                <div className="flex flex-col gap-1 text-[10px] font-mono">
+                  <div className="text-slate-600 flex items-center gap-1">
+                    <span className="text-emerald-500 font-bold">▼</span> {formatBytes(vm.netin || 0)} <span className="text-sky-500 font-bold ml-1">▲</span> {formatBytes(vm.netout || 0)}
+                  </div>
+                  <div className="text-slate-500 flex items-center gap-1">
+                    <span className="text-slate-400">Disk I/O:</span> {formatBytes((vm.diskread || 0) + (vm.diskwrite || 0))}
+                  </div>
                 </div>
               </td>
               <td className="py-4 px-2 text-right">

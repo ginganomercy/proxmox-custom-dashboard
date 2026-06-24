@@ -6,6 +6,7 @@ import {
   LogOut, Server, Activity, Cpu, MemoryStick, HardDrive, Clock,
   ShieldCheck, Users, TrendingUp, ChevronRight, RefreshCw, CheckCircle, Copy, FileText, Terminal
 } from 'lucide-react';
+import { DataTable } from '@/components/DataTable';
 
 // ─── Helper Utilities ──────────────────────────────────────────────────────────
 
@@ -627,63 +628,10 @@ export function AdminDashboard() {
               <SectionHeader
                 icon={<Server className="w-5 h-5" />}
                 title="All Node Instances"
-                subtitle={`Live view of every VM and LXC container on node: ${targetNode}`}
+                subtitle={`Live telemetry view of every VM and LXC container on node: ${targetNode}. Complete with Network I/O, Disk I/O, IP Reveal, Web Console, and Power Controls.`}
               />
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
-                  <thead>
-                    <tr className="text-slate-500 text-xs font-semibold uppercase tracking-wide bg-slate-50">
-                      <th className="py-3 px-4 rounded-l-lg">VMID</th>
-                      <th className="py-3 px-4">Name & Type</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4">CPU Usage</th>
-                      <th className="py-3 px-4">RAM Usage</th>
-                      <th className="py-3 px-4 rounded-r-lg">Disk</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isLoadingVms ? (
-                      <tr><td colSpan={6} className="py-12 text-center text-slate-400 text-sm animate-pulse">Scanning Proxmox Instances...</td></tr>
-                    ) : allVms.map((vm) => {
-                      const ramPct = vm.maxmem > 0 ? ((vm.mem / vm.maxmem) * 100) : 0;
-                      return (
-                        <tr key={vm.vmid} className="border-t border-slate-100 hover:bg-indigo-50/30 transition-colors">
-                          <td className="py-3.5 px-4 font-mono font-bold text-slate-500">#{vm.vmid}</td>
-                          <td className="py-3.5 px-4">
-                            <div className="font-semibold text-slate-800">{vm.name}</div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{vm.type || 'qemu'}</span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${vm.status === 'running' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                              <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${vm.status === 'running' ? 'bg-green-500' : 'bg-red-500'}`} />
-                              {vm.status}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-sky-500 rounded-full" style={{ width: `${Math.min((vm.cpu ?? 0) * 100, 100)}%` }} />
-                              </div>
-                              <span className="text-slate-600 font-medium text-xs">{((vm.cpu ?? 0) * 100).toFixed(1)}%</span>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${ramPct > 80 ? 'bg-red-500' : ramPct > 60 ? 'bg-amber-500' : 'bg-violet-500'}`} style={{ width: `${Math.min(ramPct, 100)}%` }} />
-                              </div>
-                              <span className="text-slate-600 font-medium text-xs">{fmtBytes(vm.mem ?? 0)} / {fmtBytes(vm.maxmem ?? 0)}</span>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-600 text-xs font-medium">{fmtBytes(vm.disk ?? 0)}</td>
-                        </tr>
-                      );
-                    })}
-                    {allVms.length === 0 && !isLoadingVms && (
-                      <tr><td colSpan={6} className="py-12 text-center text-slate-400 text-sm">No instances found on {targetNode}.</td></tr>
-                    )}
-                  </tbody>
-                </table>
+              <div className="mt-4">
+                <DataTable data={allVms} isLoading={isLoadingVms} nodeName={targetNode} onDeleteSuccess={() => fetchGlobalData()} />
               </div>
             </div>
           )}
