@@ -87,19 +87,21 @@ export default function InstanceManageModal({ vm, nodeName, onClose }: InstanceM
     }
   };
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent) setLoading(true);
     setError('');
     if (activeTab === 'network') {
       await fetchNetworkInfo();
     } else if (activeTab === 'snapshots') {
       await fetchSnapshots();
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
   };
 
   useEffect(() => {
-    loadData();
+    loadData(false);
+    const interval = setInterval(() => loadData(true), 15000); // stable 15s auto-refresh
+    return () => clearInterval(interval);
   }, [activeTab]);
 
   const handleCreateSnapshot = async (e: React.FormEvent) => {

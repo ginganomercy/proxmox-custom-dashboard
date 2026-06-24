@@ -47,10 +47,10 @@ export function Dashboard() {
     return true;
   };
 
-  const fetchData = async () => {
+  const fetchData = async (silent = false) => {
     if (!checkAuth()) return;
     
-    setIsLoading(true);
+    if (!silent) setIsLoading(true);
     setError('');
     
     try {
@@ -98,12 +98,14 @@ export function Dashboard() {
       console.error(err);
       setError('Failed to fetch data.');
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(false);
+    const interval = setInterval(() => fetchData(true), 15000); // stable 15s auto-refresh
+    return () => clearInterval(interval);
   }, []);
 
   const handleLogout = () => {

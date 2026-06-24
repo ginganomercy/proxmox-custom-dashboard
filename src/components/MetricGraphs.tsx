@@ -32,8 +32,8 @@ export function MetricGraphs({ node, vmid, type }: MetricGraphsProps) {
   const [error, setError] = useState('');
   const [timeframe, setTimeframe] = useState('hour'); // hour, day, week, month, year
 
-  const fetchData = async () => {
-    setIsLoading(true);
+  const fetchData = async (silent = false) => {
+    if (!silent) setIsLoading(true);
     setError('');
     try {
       let endpoint = `/proxmox/nodes/${node}/rrddata?timeframe=${timeframe}`;
@@ -61,13 +61,15 @@ export function MetricGraphs({ node, vmid, type }: MetricGraphsProps) {
       console.error(err);
       setError('Failed to fetch telemetry data.');
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
   useEffect(() => {
     if (node) {
-      fetchData();
+      fetchData(false);
+      const interval = setInterval(() => fetchData(true), 30000); // stable 30s auto-refresh
+      return () => clearInterval(interval);
     }
   }, [node, vmid, type, timeframe]);
 

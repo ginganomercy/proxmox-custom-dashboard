@@ -128,9 +128,9 @@ export function AdminDashboard() {
   };
 
   // 1. Fetch Global Summary (On Mount & Refresh)
-  const fetchGlobalData = async () => {
+  const fetchGlobalData = async (silent = false) => {
     if (!checkAuth()) return;
-    setIsLoadingSummary(true);
+    if (!silent) setIsLoadingSummary(true);
     try {
       let nodeToUse = targetNode;
       const nodesRes = await api.get('/proxmox/nodes').catch(() => null);
@@ -149,31 +149,39 @@ export function AdminDashboard() {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsLoadingSummary(false);
+      if (!silent) setIsLoadingSummary(false);
     }
   };
 
-  useEffect(() => { fetchGlobalData(); }, []);
+  useEffect(() => { 
+    fetchGlobalData(false); 
+    const interval = setInterval(() => fetchGlobalData(true), 15000); // stable 15s auto-refresh
+    return () => clearInterval(interval);
+  }, []);
 
   // 2. Lazy Load Orders (Anti-Race Condition via AbortController)
   useEffect(() => {
     if (activeTab !== 'orders') return;
     const controller = new AbortController();
     
-    const fetchOrders = async () => {
-      setIsLoadingOrders(true);
+    const fetchOrders = async (silent = false) => {
+      if (!silent) setIsLoadingOrders(true);
       try {
         const res = await api.get('/admin/orders', { signal: controller.signal });
         if (res.data) setOrders(res.data);
       } catch (err: any) {
         if (err.name !== 'CanceledError') console.error('Orders fetch failed:', err);
       } finally {
-        setIsLoadingOrders(false);
+        if (!silent) setIsLoadingOrders(false);
       }
     };
     
-    fetchOrders();
-    return () => controller.abort(); // Cancel request if tab changes before completion
+    fetchOrders(false);
+    const interval = setInterval(() => fetchOrders(true), 10000); // stable 10s auto-refresh
+    return () => {
+      clearInterval(interval);
+      controller.abort(); // Cancel request if tab changes before completion
+    };
   }, [activeTab]);
 
   // 3. Lazy Load VMs (Anti-Race Condition)
@@ -181,20 +189,24 @@ export function AdminDashboard() {
     if (activeTab !== 'vms' || !targetNode) return;
     const controller = new AbortController();
     
-    const fetchVms = async () => {
-      setIsLoadingVms(true);
+    const fetchVms = async (silent = false) => {
+      if (!silent) setIsLoadingVms(true);
       try {
         const res = await api.get(`/proxmox/nodes/${targetNode}/instances`, { signal: controller.signal });
         if (res.data) setAllVms(res.data);
       } catch (err: any) {
         if (err.name !== 'CanceledError') console.error('VMs fetch failed:', err);
       } finally {
-        setIsLoadingVms(false);
+        if (!silent) setIsLoadingVms(false);
       }
     };
     
-    fetchVms();
-    return () => controller.abort();
+    fetchVms(false);
+    const interval = setInterval(() => fetchVms(true), 15000); // stable 15s auto-refresh
+    return () => {
+      clearInterval(interval);
+      controller.abort();
+    };
   }, [activeTab, targetNode]);
 
 
