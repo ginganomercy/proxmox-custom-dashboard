@@ -21,6 +21,7 @@ export function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    document.title = "Cloud Baja Tegal | High-Performance Cloud VPS & Proxmox Management";
     const token = Cookies.get('token');
     if (token) {
       setIsLoggedIn(true);

@@ -104,6 +104,10 @@ function SectionCard({ children, className = '' }: SectionCardProps) {
 export function AdminDashboard() {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = "Admin Control Panel | Cloud Baja Tegal";
+  }, []);
+
   const [activeTab, setActiveTab] = useState<'orders' | 'vms' | 'logs'>('orders');
   const [logTab, setLogTab] = useState<'tasks' | 'clusterlog'>('tasks');
   

@@ -26,6 +26,10 @@ longApi.interceptors.request.use((config) => {
 
 export function Dashboard() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = "My Virtual Machines | Cloud Baja Tegal";
+  }, []);
   const [vms, setVms] = useState([]);
   const [nodeName, setNodeName] = useState<string>('Loading...');
   const [nodeStatus, setNodeStatus] = useState<any>(null);

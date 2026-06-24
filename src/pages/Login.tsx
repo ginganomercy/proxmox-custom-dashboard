@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
@@ -8,6 +8,10 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Server, Lock, User } from 'lucide-react';
 
 export function Login() {
+  useEffect(() => {
+    document.title = "Secure Login | Cloud Baja Tegal";
+  }, []);
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
