@@ -56,7 +56,7 @@ export function Login() {
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
       <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
       
-      <GlassCard className="w-full max-w-md p-8 relative z-10">
+      <GlassCard className="w-full max-w-md p-6 sm:p-8 relative z-10">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 mb-4 shadow-xl shadow-blue-500/20 rounded-2xl overflow-hidden bg-transparent transform hover:scale-105 transition-transform duration-200">
             <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />

@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import {
   LogOut, Server, Activity, Cpu, MemoryStick, HardDrive, Clock,
-  ShieldCheck, Users, TrendingUp, ChevronRight, RefreshCw, CheckCircle, Copy, FileText, Terminal
+  ShieldCheck, Users, TrendingUp, ChevronRight, RefreshCw, CheckCircle, Copy, FileText, Terminal, Menu, X
 } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 
@@ -110,6 +110,7 @@ export function AdminDashboard() {
 
   const [activeTab, setActiveTab] = useState<'orders' | 'vms' | 'logs'>('orders');
   const [logTab, setLogTab] = useState<'tasks' | 'clusterlog'>('tasks');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Data States
   const [summary, setSummary] = useState<any>({ total_orders: 0, pending_orders: 0 });
@@ -321,24 +322,48 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row relative">
       {/* ════════════════════════════════════════════════════════════════
-          SECTION 1: Left Sidebar (cPanel Jupiter Inspired Premium Navy Theme)
+          SECTION 1: Left Sidebar — Responsive Mobile Drawer
       ════════════════════════════════════════════════════════════════ */}
-      <aside className="lg:w-72 bg-[#0b162c] text-white flex flex-col flex-shrink-0 border-r border-slate-800 shadow-xl z-20 lg:sticky lg:top-0 lg:h-screen">
-        <div className="p-6 border-b border-slate-800/80 flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/30 bg-transparent">
-            <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
+
+      {/* Mobile Backdrop Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden backdrop-blur-sm"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 w-72 bg-[#0b162c] text-white flex flex-col flex-shrink-0 border-r border-slate-800 shadow-xl z-40
+          transform transition-transform duration-300 ease-in-out
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 lg:static lg:z-20`}
+      >
+        <div className="p-6 border-b border-slate-800/80 flex items-center justify-between gap-3.5">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/30 bg-transparent">
+              <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
+            </div>
+            <div>
+              <h1 className="font-bold text-lg tracking-tight text-white">Admin Control</h1>
+              <p className="text-xs text-indigo-300 font-medium">Cloud Baja Tegal</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-bold text-lg tracking-tight text-white">Admin Control</h1>
-            <p className="text-xs text-indigo-300 font-medium">Cloud Baja Tegal</p>
-          </div>
+          {/* Close button — visible on mobile only */}
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        
+
         {/* Navigation Links */}
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          <div className="text-[11px] font-bold text-slate-400 px-3 mb-3 uppercase tracking-wider">Kluster & Manajemen</div>
+          <div className="text-[11px] font-bold text-slate-400 px-3 mb-3 uppercase tracking-wider">Kluster &amp; Manajemen</div>
           <button
-            onClick={() => setActiveTab('orders')}
+            onClick={() => { setActiveTab('orders'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'orders'
                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
@@ -357,7 +382,7 @@ export function AdminDashboard() {
           </button>
 
           <button
-            onClick={() => setActiveTab('vms')}
+            onClick={() => { setActiveTab('vms'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'vms'
                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
@@ -369,7 +394,7 @@ export function AdminDashboard() {
           </button>
 
           <button
-            onClick={() => setActiveTab('logs')}
+            onClick={() => { setActiveTab('logs'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'logs'
                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
@@ -403,24 +428,32 @@ export function AdminDashboard() {
       {/* ════════════════════════════════════════════════════════════════
           SECTION 2: Main Content Area
       ════════════════════════════════════════════════════════════════ */}
-      <main className="flex-1 flex flex-col min-w-0 bg-slate-50 relative z-10 overflow-y-auto">
+      <main className="flex-1 flex flex-col min-w-0 bg-slate-50 relative z-10 overflow-y-auto lg:ml-0">
         {/* Sticky Top Bar */}
-        <header className="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+        <header className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-800">
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors mr-1"
+              aria-label="Open sidebar menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800">
               {activeTab === 'orders' ? 'Customer Orders Management' : activeTab === 'vms' ? 'Node Instances Overview' : 'System Cluster Logs'}
             </h2>
-            <span className="text-xs px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full font-bold border border-indigo-100 hidden sm:inline-block">
+            <span className="text-xs px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full font-bold border border-indigo-100 hidden md:inline-block">
               Cluster: {targetNode}
             </span>
           </div>
           <button
             onClick={() => { fetchGlobalData(); }}
             disabled={isLoadingSummary}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm"
           >
             <RefreshCw className={`w-4 h-4 ${isLoadingSummary ? 'animate-spin' : ''}`} />
-            <span>Refresh Status</span>
+            <span className="hidden sm:inline">Refresh Status</span>
           </button>
         </header>
 

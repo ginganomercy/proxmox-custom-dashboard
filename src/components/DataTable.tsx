@@ -280,7 +280,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
         >
           {/* Ergonomic framing matching premium cPanel Jupiter dimensions (calibrated to 1024x768 4:3 ratio) */}
           <div
-            className="flex flex-col bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl overflow-hidden w-full max-w-5xl h-[70vh] max-h-[768px] min-h-[550px]"
+            className="flex flex-col bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl overflow-hidden w-full max-w-5xl h-[85vh] sm:h-[70vh] max-h-[768px] min-h-[350px] sm:min-h-[550px]"
           >
             {/* Modal title bar */}
             <div className="flex items-center justify-between px-4 py-2.5 bg-[#1a2035] border-b border-slate-700 flex-shrink-0">

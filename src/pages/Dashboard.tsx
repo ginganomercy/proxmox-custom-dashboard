@@ -242,7 +242,7 @@ export function Dashboard() {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap gap-2 sm:gap-3 w-full md:w-auto justify-end">
             {user?.role === 'ADMIN' && (
               <button 
                 onClick={() => navigate('/admin')}
