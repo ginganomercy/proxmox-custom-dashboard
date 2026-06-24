@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import logoUrl from '@/assets/logo.svg?url';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/api';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -51,7 +52,7 @@ export function Register() {
       <GlassCard className="w-full max-w-md p-6 sm:p-8 relative z-10">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 mb-4 shadow-xl shadow-indigo-500/20 rounded-2xl overflow-hidden bg-transparent transform hover:scale-105 transition-transform duration-200">
-            <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
+            <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-slate-800">Create an Account</h1>
           <p className="text-slate-500 text-sm mt-1">Join Cloud Baja Tegal (CBT)</p>

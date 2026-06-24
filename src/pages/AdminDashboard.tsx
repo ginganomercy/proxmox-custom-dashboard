@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logoUrl from '@/assets/logo.svg?url';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
@@ -342,7 +343,7 @@ export function AdminDashboard() {
         <div className="p-6 border-b border-slate-800/80 flex items-center justify-between gap-3.5">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/30 bg-transparent">
-              <img src="/favicon.svg" alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
+              <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="font-bold text-lg tracking-tight text-white">Admin Control</h1>
