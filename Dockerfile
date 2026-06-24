@@ -25,7 +25,13 @@ RUN echo 'server { \
         index index.html index.htm; \
         try_files $uri $uri/ /index.html; \
     } \
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ { \
+    location ~* \.(svg)$ { \
+        root /usr/share/nginx/html; \
+        try_files $uri =404; \
+        expires -1; \
+        add_header Cache-Control "no-cache, no-store, must-revalidate"; \
+    } \
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ { \
         root /usr/share/nginx/html; \
         try_files $uri =404; \
         expires 1y; \

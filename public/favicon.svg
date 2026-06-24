@@ -1,20 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
   <defs>
-    <linearGradient id="cbtGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e3a8a" />
-      <stop offset="50%" stop-color="#2563eb" />
-      <stop offset="100%" stop-color="#3b82f6" />
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f0c29"/>
+      <stop offset="50%" stop-color="#302b63"/>
+      <stop offset="100%" stop-color="#24243e"/>
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0b162c" flood-opacity="0.5"/>
+    <linearGradient id="bolt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0abfc"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#7c3aed" flood-opacity="0.6"/>
+    </filter>
+    <filter id="glow-filter">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
   </defs>
-  <rect width="512" height="512" rx="128" fill="url(#cbtGrad)" filter="url(#shadow)" />
-  <path d="M256 96 C 150 96 110 160 110 240 C 70 250 56 310 80 352 C 100 380 140 396 180 396 L 332 396 C 390 396 430 360 442 312 C 454 260 410 210 370 208 C 360 130 320 96 256 96 Z" fill="#ffffff" opacity="0.9" />
-  <path d="M180 230 L 332 230 A 16 16 0 0 1 348 246 L 348 270 A 16 16 0 0 1 332 286 L 180 286 A 16 16 0 0 1 164 270 L 164 246 A 16 16 0 0 1 180 230 Z" fill="#0b162c" />
-  <circle cx="204" cy="258" r="10" fill="#3b82f6" />
-  <circle cx="240" cy="258" r="10" fill="#10b981" />
-  <path d="M180 300 L 332 300 A 16 16 0 0 1 348 316 L 348 340 A 16 16 0 0 1 332 356 L 180 356 A 16 16 0 0 1 164 340 L 164 316 A 16 16 0 0 1 180 300 Z" fill="#0b162c" />
-  <circle cx="204" cy="328" r="10" fill="#3b82f6" />
-  <circle cx="240" cy="328" r="10" fill="#10b981" />
+
+  <!-- Background rounded rectangle -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines for tech feel -->
+  <line x1="0" y1="170" x2="512" y2="170" stroke="#ffffff" stroke-width="0.5" opacity="0.05"/>
+  <line x1="0" y1="342" x2="512" y2="342" stroke="#ffffff" stroke-width="0.5" opacity="0.05"/>
+  <line x1="170" y1="0" x2="170" y2="512" stroke="#ffffff" stroke-width="0.5" opacity="0.05"/>
+  <line x1="342" y1="0" x2="342" y2="512" stroke="#ffffff" stroke-width="0.5" opacity="0.05"/>
+
+  <!-- Lightning bolt — main shape (outer glow layer) -->
+  <polygon
+    points="290,68 160,290 240,290 220,444 352,222 272,222 290,68"
+    fill="url(#glow)"
+    opacity="0.3"
+    filter="url(#glow-filter)"
+  />
+
+  <!-- Lightning bolt — main shape -->
+  <polygon
+    points="290,68 160,290 240,290 220,444 352,222 272,222 290,68"
+    fill="url(#bolt)"
+    filter="url(#shadow)"
+  />
+
+  <!-- Highlight stripe on bolt -->
+  <polygon
+    points="280,90 190,248 240,248 225,340 290,210 250,210 280,90"
+    fill="#c4b5fd"
+    opacity="0.5"
+  />
 </svg>
