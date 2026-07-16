@@ -30,7 +30,7 @@ export function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 text-slate-800 relative overflow-hidden font-sans">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 via-white to-slate-50 text-slate-800 relative overflow-hidden font-sans">
       {/* Decorative Blur Blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[35rem] h-[35rem] bg-blue-200/50 rounded-full mix-blend-multiply filter blur-[120px] pointer-events-none"></div>
       <div className="absolute top-[20%] right-[-10%] w-[40rem] h-[40rem] bg-sky-200/40 rounded-full mix-blend-multiply filter blur-[140px] pointer-events-none"></div>
@@ -51,7 +51,7 @@ export function LandingPage() {
               <span className="text-xl font-bold tracking-tight text-slate-900 bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent leading-none">
                 Cloud Baja Tegal (CBT)
               </span>
-              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
+              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mt-0.5">
                 Politeknik Baja Tegal
               </span>
             </div>
@@ -59,9 +59,9 @@ export function LandingPage() {
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#tentang" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Tentang CBT</a>
-            <a href="#fasilitas" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Fasilitas Lab</a>
-            <a href="#preview" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Pratinjau Sistem</a>
+            <a href="#tentang" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Tentang CBT</a>
+            <a href="#fasilitas" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Fasilitas Lab</a>
+            <a href="#preview" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Pratinjau Sistem</a>
           </nav>
 
           {/* Call to Actions */}
@@ -93,7 +93,7 @@ export function LandingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10">
+      <main className="relative z-10 flex-grow">
         
         {/* Hero Section */}
         <section id="tentang" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
@@ -109,7 +109,7 @@ export function LandingPage() {
             </span>
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium animate-fade-in-up delay-200">
+          <p className="mt-6 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto font-medium animate-fade-in-up delay-200">
             Infrastruktur komputasi cerdas dan inovatif (Cloud Baja Tegal) yang dirancang khusus untuk mendukung praktikum, riset, dan pengembangan proyek bagi Civitas Akademika Politeknik Baja Tegal.
           </p>
 
@@ -277,67 +277,67 @@ export function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Feature 1 */}
-            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Cpu className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">Praktikum KVM & LXC</h3>
-              <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed font-medium">
                 Mahasiswa dapat memilih antara isolasi penuh KVM (Virtual Machine) atau container LXC yang ringan untuk berbagai skenario praktikum sistem operasi dan jaringan.
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <RotateCcw className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">Manajemen Snapshot</h3>
-              <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed font-medium">
                 Fitur snapshot memungkinkan mahasiswa untuk bereksperimen dengan konfigurasi sistem tanpa takut merusak lingkungan, karena status sistem dapat dikembalikan secara instan.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Terminal className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">Akses Konsol Web Terintegrasi</h3>
-              <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed font-medium">
                 Mengakses terminal server langsung dari peramban web (browser) tanpa memerlukan konfigurasi SSH eksternal, memudahkan proses pembelajaran di lab maupun dari rumah.
               </p>
             </div>
 
             {/* Feature 4 */}
-            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Zap className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">Penyediaan Cepat (Sub-minute)</h3>
-              <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed font-medium">
                 Sistem perutean dan templat cerdas kami secara otomatis membangun sistem operasi dan jaringan dalam waktu kurang dari satu menit, sehingga praktikum bisa segera dimulai.
               </p>
             </div>
 
             {/* Feature 5 */}
-            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Shield className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">Lingkungan Terisolasi & Aman</h3>
-              <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed font-medium">
                 Setiap mesin virtual mahasiswa beroperasi pada ruang yang terisolasi dengan aturan firewall khusus, mencegah intervensi antar proyek dan menjaga integritas data akademik.
               </p>
             </div>
 
             {/* Feature 6 */}
-            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Globe className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">Akses Akademik Terpusat</h3>
-              <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed font-medium">
                 Infrastruktur jaringan berkinerja tinggi memastikan stabilitas koneksi bagi dosen dan mahasiswa untuk mengakses proyek, API, atau basis data riset secara global.
               </p>
             </div>
@@ -347,20 +347,26 @@ export function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-100 bg-white/40 py-8 text-center text-xs text-slate-400 font-medium">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-md overflow-hidden bg-transparent">
+      <footer className="relative z-10 border-t border-slate-200 bg-slate-50 py-10 mt-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-md overflow-hidden bg-transparent shrink-0">
               <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="font-bold text-slate-800 text-sm">Cloud Baja Tegal (CBT)</span>
-              <span className="text-[10px] uppercase">Politeknik Baja Tegal</span>
+              <span className="font-bold text-slate-800 text-sm md:text-base">Cloud Baja Tegal (CBT)</span>
+              <span className="text-[10px] md:text-xs font-bold text-blue-600 uppercase tracking-wider">Politeknik Baja Tegal</span>
             </div>
           </div>
-          <p>© {new Date().getFullYear()} Politeknik Baja Tegal. Hak Cipta Dilindungi Undang-Undang.</p>
+          
+          <p className="text-xs md:text-sm text-slate-500 font-medium text-center">
+            © {new Date().getFullYear()} Politeknik Baja Tegal. Hak Cipta Dilindungi Undang-Undang.
+          </p>
+          
           <div className="flex items-center gap-4">
-            <a href="https://pbjt.ac.id" target="_blank" rel="noreferrer" className="hover:text-blue-600 transition-colors">Website Resmi PBJT</a>
+            <a href="https://pbjt.ac.id" target="_blank" rel="noreferrer" className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+              Website Resmi PBJT
+            </a>
           </div>
         </div>
       </footer>
