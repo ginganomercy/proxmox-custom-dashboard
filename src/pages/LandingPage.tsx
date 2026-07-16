@@ -12,7 +12,9 @@ import {
   Globe, 
   ChevronRight, 
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  Menu,
+  X
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
@@ -20,6 +22,7 @@ import Cookies from 'js-cookie';
 export function LandingPage() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Cloud Baja Tegal | VPS Akademik Politeknik Baja Tegal";
@@ -64,8 +67,8 @@ export function LandingPage() {
             <a href="#preview" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Pratinjau Sistem</a>
           </nav>
 
-          {/* Call to Actions */}
-          <div className="flex items-center gap-4">
+          {/* Call to Actions - Desktop */}
+          <div className="hidden md:flex items-center gap-4">
             {isLoggedIn ? (
               <Link 
                 to="/dashboard" 
@@ -89,7 +92,59 @@ export function LandingPage() {
               </>
             )}
           </div>
+
+          {/* Hamburger Button - Mobile */}
+          <div className="md:hidden flex items-center">
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+              className="text-slate-600 hover:text-blue-600 p-2 focus:outline-none"
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-16 left-0 w-full bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-lg px-4 py-6 flex flex-col gap-6 z-50 animate-fade-in-up">
+            <nav className="flex flex-col gap-4">
+              <a href="#tentang" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-semibold text-slate-700 hover:text-blue-600 transition-colors">Tentang CBT</a>
+              <a href="#fasilitas" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-semibold text-slate-700 hover:text-blue-600 transition-colors">Fasilitas Lab</a>
+              <a href="#preview" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-semibold text-slate-700 hover:text-blue-600 transition-colors">Pratinjau Sistem</a>
+            </nav>
+            <div className="border-t border-slate-100 pt-6 flex flex-col gap-3">
+              {isLoggedIn ? (
+                <Link 
+                  to="/dashboard" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-center rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+                >
+                  Masuk ke Dasbor
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <>
+                  <Link 
+                    to="/login" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full py-3 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-center rounded-xl text-sm font-semibold transition-all"
+                  >
+                    Masuk
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-center rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    Daftar Sekarang
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
@@ -347,27 +402,34 @@ export function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-200 bg-slate-50 py-10 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md overflow-hidden bg-transparent shrink-0">
-              <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
+      <footer className="relative z-10 border-t border-slate-200 bg-slate-50 py-12 mt-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8">
+          
+          <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 max-w-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shadow-sm shrink-0">
+                <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain p-1" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-bold text-slate-800 text-lg leading-tight">Cloud Baja Tegal</span>
+                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest mt-0.5">Politeknik Baja Tegal</span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="font-bold text-slate-800 text-sm md:text-base">Cloud Baja Tegal (CBT)</span>
-              <span className="text-[10px] md:text-xs font-bold text-blue-600 uppercase tracking-wider">Politeknik Baja Tegal</span>
-            </div>
+            <p className="text-sm text-slate-500 leading-relaxed mt-2 hidden md:block">
+              Infrastruktur komputasi cerdas dan inovatif yang dirancang khusus untuk praktikum dan riset civitas akademika.
+            </p>
           </div>
           
-          <p className="text-xs md:text-sm text-slate-500 font-medium text-center">
-            © {new Date().getFullYear()} Politeknik Baja Tegal. Hak Cipta Dilindungi Undang-Undang.
-          </p>
-          
-          <div className="flex items-center gap-4">
-            <a href="https://pbjt.ac.id" target="_blank" rel="noreferrer" className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+          <div className="flex flex-col items-center lg:items-end gap-3 mt-4 lg:mt-0">
+            <a href="https://pbjt.ac.id" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition-colors">
               Website Resmi PBJT
+              <ArrowRight className="w-4 h-4 ml-2" />
             </a>
+            <p className="text-xs text-slate-400 font-medium text-center mt-2">
+              © {new Date().getFullYear()} Politeknik Baja Tegal.<br className="md:hidden" /> Hak Cipta Dilindungi Undang-Undang.
+            </p>
           </div>
+
         </div>
       </footer>
     </div>
