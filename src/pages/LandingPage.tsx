@@ -97,23 +97,23 @@ export function LandingPage() {
         
         {/* Hero Section */}
         <section id="tentang" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-6 shadow-sm">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-6 shadow-sm animate-fade-in-up">
             <Zap className="w-3.5 h-3.5 fill-blue-500" />
             Cerdas, Inovatif, Berkarakter
           </div>
           
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 max-w-4xl mx-auto leading-tight">
-            Virtual Private Server Hak Milik{" "}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 max-w-4xl mx-auto leading-tight animate-fade-in-up delay-100">
+            Virtual Private Server{" "}
             <span className="block mt-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 bg-clip-text text-transparent">
               Politeknik Baja Tegal
             </span>
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium">
+          <p className="mt-6 text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium animate-fade-in-up delay-200">
             Infrastruktur komputasi cerdas dan inovatif (Cloud Baja Tegal) yang dirancang khusus untuk mendukung praktikum, riset, dan pengembangan proyek bagi Civitas Akademika Politeknik Baja Tegal.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
             <Link 
               to={isLoggedIn ? "/dashboard" : "/login"} 
               className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all text-base transform hover:-translate-y-0.5"
@@ -129,7 +129,7 @@ export function LandingPage() {
             </a>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-slate-600 font-medium">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-slate-600 font-medium animate-fade-in-up delay-400">
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4 text-blue-500" />
               Eksklusif Civitas Akademika
@@ -146,7 +146,7 @@ export function LandingPage() {
         </section>
 
         {/* Visual Preview / Replica Card Section */}
-        <section id="preview" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section id="preview" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up delay-500">
           <div className="bg-white/80 rounded-3xl p-4 sm:p-6 shadow-xl shadow-blue-900/5 border border-white/80 backdrop-blur-md relative">
             {/* Top bar replica */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
