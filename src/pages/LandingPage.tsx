@@ -22,7 +22,7 @@ export function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    document.title = "Cloud Baja Tegal | High-Performance Cloud VPS & Proxmox Management";
+    document.title = "Cloud Baja Tegal | VPS Akademik Politeknik Baja Tegal";
     const token = Cookies.get('token');
     if (token) {
       setIsLoggedIn(true);
@@ -44,19 +44,24 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform duration-200 bg-transparent">
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform duration-200 bg-transparent flex-shrink-0">
               <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
-              Cloud Baja Tegal (CBT)
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold tracking-tight text-slate-900 bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent leading-none">
+                Cloud Baja Tegal (CBT)
+              </span>
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
+                Politeknik Baja Tegal
+              </span>
+            </div>
           </Link>
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Features</a>
-            <a href="#preview" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Console Preview</a>
-            <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Pricing</a>
+            <a href="#tentang" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Tentang CBT</a>
+            <a href="#fasilitas" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Fasilitas Lab</a>
+            <a href="#preview" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Pratinjau Sistem</a>
           </nav>
 
           {/* Call to Actions */}
@@ -66,19 +71,19 @@ export function LandingPage() {
                 to="/dashboard" 
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 transition-all flex items-center gap-1.5"
               >
-                Go to Dashboard
+                Masuk ke Dasbor
                 <ArrowRight className="w-4 h-4" />
               </Link>
             ) : (
               <>
                 <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
-                  Sign In
+                  Masuk
                 </Link>
                 <Link 
                   to="/register" 
                   className="px-4.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 transition-all flex items-center gap-1.5"
                 >
-                  Sign Up
+                  Daftar
                   <ChevronRight className="w-4 h-4" />
                 </Link>
               </>
@@ -91,21 +96,21 @@ export function LandingPage() {
       <main className="relative z-10">
         
         {/* Hero Section */}
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
+        <section id="tentang" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-6 shadow-sm">
             <Zap className="w-3.5 h-3.5 fill-blue-500" />
-            Deploy High Performance Cloud Instances in Under 60 Seconds
+            Cerdas, Inovatif, Berkarakter
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 max-w-4xl mx-auto leading-tight">
-            Next-Gen Cloud VPS & Containers{" "}
+            Virtual Private Server Hak Milik{" "}
             <span className="block mt-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 bg-clip-text text-transparent">
-              Powered by Cloud Baja Tegal (CBT)
+              Politeknik Baja Tegal
             </span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium">
-            Run isolated virtual machines and lightweight containers on enterprise-grade hardware. Manage snapshots, network configurations, and direct console access with total freedom.
+            Infrastruktur komputasi cerdas dan inovatif (Cloud Baja Tegal) yang dirancang khusus untuk mendukung praktikum, riset, dan pengembangan proyek bagi Civitas Akademika Politeknik Baja Tegal.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -113,29 +118,29 @@ export function LandingPage() {
               to={isLoggedIn ? "/dashboard" : "/login"} 
               className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all text-base transform hover:-translate-y-0.5"
             >
-              {isLoggedIn ? "Go to Dashboard" : "Deploy VPS Now"}
+              {isLoggedIn ? "Masuk ke Dasbor" : "Akses Lab Virtual"}
             </Link>
             <a 
               href="#preview" 
               className="w-full sm:w-auto px-8 py-4 bg-white/80 hover:bg-white text-slate-700 border border-slate-200 hover:border-blue-300 font-semibold rounded-2xl transition-all text-base flex items-center justify-center gap-2 backdrop-blur-sm"
             >
-              See Console Interface
+              Lihat Pratinjau Sistem
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </a>
           </div>
 
-          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-slate-400 font-medium">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-slate-600 font-medium">
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4 text-blue-500" />
-              KVM Virtualization
+              Eksklusif Civitas Akademika
             </div>
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4 text-blue-500" />
-              LXC Container Support
+              Lingkungan Riset Terisolasi
             </div>
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4 text-blue-500" />
-              Instant Snapshots
+              Mendukung Inovasi Teknologi
             </div>
           </div>
         </section>
@@ -149,11 +154,11 @@ export function LandingPage() {
                 <span className="w-3 h-3 rounded-full bg-red-400"></span>
                 <span className="w-3 h-3 rounded-full bg-amber-400"></span>
                 <span className="w-3 h-3 rounded-full bg-green-400"></span>
-                <span className="text-xs font-semibold text-slate-400 ml-2">Console Interface Preview</span>
+                <span className="text-xs font-semibold text-slate-400 ml-2">Pratinjau Antarmuka Konsol</span>
               </div>
               <div className="flex items-center gap-1.5 bg-blue-50/50 border border-blue-100/50 rounded-full px-2.5 py-1">
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
-                <span className="text-xs font-medium text-blue-700">Cluster Status: Healthy</span>
+                <span className="text-xs font-medium text-blue-700">Status Server: Optimal</span>
               </div>
             </div>
 
@@ -165,10 +170,10 @@ export function LandingPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h4 className="text-sm font-semibold text-slate-400">VM ID: 400</h4>
-                      <h3 className="text-lg font-bold text-slate-800">web-vps-production</h3>
+                      <h3 className="text-lg font-bold text-slate-800">lab-jaringan-01</h3>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
-                      Running
+                      Berjalan
                     </span>
                   </div>
                   <div className="space-y-3.5 my-6">
@@ -177,18 +182,18 @@ export function LandingPage() {
                       <span className="font-semibold text-slate-700">Ubuntu 22.04 LTS</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Core Allocation</span>
-                      <span className="font-semibold text-slate-700">2 vCPUs (Dedicated)</span>
+                      <span className="text-slate-500 font-medium">Alokasi CPU</span>
+                      <span className="font-semibold text-slate-700">2 vCPUs</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Storage Type</span>
-                      <span className="font-semibold text-slate-700">Enterprise NVMe SSD</span>
+                      <span className="text-slate-500 font-medium">Penyimpanan</span>
+                      <span className="font-semibold text-slate-700">NVMe SSD</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                  <span className="text-xs font-semibold text-slate-500">Node: Capybara</span>
+                  <span className="text-xs font-semibold text-slate-500">Node: Akademik-1</span>
                 </div>
               </div>
 
@@ -197,13 +202,13 @@ export function LandingPage() {
                 <div>
                   <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-1.5">
                     <Activity className="w-4 h-4 text-blue-600" />
-                    Resource Monitoring
+                    Pemantauan Sumber Daya
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     {/* CPU metric */}
                     <div className="bg-white/60 p-4 rounded-xl border border-slate-100">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-slate-400">CPU LOAD</span>
+                        <span className="text-xs font-bold text-slate-400">BEBAN CPU</span>
                         <Cpu className="w-3.5 h-3.5 text-blue-500" />
                       </div>
                       <div className="text-xl font-black text-slate-800">18.4%</div>
@@ -214,7 +219,7 @@ export function LandingPage() {
                     {/* RAM metric */}
                     <div className="bg-white/60 p-4 rounded-xl border border-slate-100">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-slate-400">MEMORY</span>
+                        <span className="text-xs font-bold text-slate-400">MEMORI</span>
                         <HardDrive className="w-3.5 h-3.5 text-indigo-500" />
                       </div>
                       <div className="text-xl font-black text-slate-800">1.2 GB / 4 GB</div>
@@ -227,48 +232,46 @@ export function LandingPage() {
 
                 {/* Simulated charts line */}
                 <div className="mt-4 pt-4 border-t border-slate-100/60 flex items-center justify-between text-xs text-slate-400 font-medium">
-                  <span>Ping latency: 12ms</span>
-                  <span>Uptime: 14 days, 3 hours</span>
+                  <span>Ping latensi: 12ms</span>
+                  <span>Waktu Aktif: 14 hari, 3 jam</span>
                 </div>
               </div>
             </div>
 
             {/* Interactive Terminal Mock */}
-            <div className="mt-6 bg-slate-900 rounded-2xl p-4 font-mono text-xs text-blue-400 border border-slate-800 shadow-inner">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3 text-slate-500">
+            <div className="mt-6 bg-slate-900 rounded-2xl p-4 font-mono text-xs text-blue-400 border border-slate-800 shadow-inner overflow-x-auto">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3 text-slate-500 min-w-[500px]">
                 <div className="flex items-center gap-1.5">
                   <Terminal className="w-3.5 h-3.5 text-blue-500" />
-                  <span>noVNC Terminal - root@web-vps-production</span>
+                  <span>Terminal noVNC - root@lab-jaringan-01</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  <span className="text-[10px]">CONNECTED</span>
+                  <span className="text-[10px]">TERHUBUNG</span>
                 </div>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 min-w-[500px]">
                 <p className="text-slate-500">Welcome to Ubuntu 22.04 LTS (GNU/Linux 5.15.0-88-generic x86_64)</p>
-                <p className="text-slate-500">* Documentation:  https://help.ubuntu.com</p>
-                <p className="text-slate-500">* Management:     https://landscape.canonical.com</p>
                 <p className="text-slate-400">System load:  0.08               Memory usage: 30%</p>
                 <p className="text-slate-400">Usage of /:   12.1% of 19.56GB   IP address:   192.168.1.100</p>
-                <p className="text-blue-500">root@web-vps-production:~# <span className="text-white hover:underline cursor-pointer">systemctl status nginx.service</span></p>
+                <p className="text-blue-500">root@lab-jaringan-01:~# <span className="text-white hover:underline cursor-pointer">systemctl status nginx.service</span></p>
                 <p className="text-green-400">● nginx.service - A high performance web server and a reverse proxy server</p>
                 <p className="text-green-400">     Active: active (running) since Sun 2026-05-24 10:14:00 UTC; 8h ago</p>
-                <p className="text-blue-500">root@web-vps-production:~# <span className="animate-pulse text-white">|</span></p>
+                <p className="text-blue-500">root@lab-jaringan-01:~# <span className="animate-pulse text-white">|</span></p>
               </div>
             </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <section id="fasilitas" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 border-t border-slate-100">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-xs font-extrabold tracking-wider text-blue-600 uppercase">Enterprise Stack</h2>
+            <h2 className="text-xs font-extrabold tracking-wider text-blue-600 uppercase">Fasilitas Infrastruktur</h2>
             <p className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-              Power Packed Infrastructure
+              Platform Pembelajaran & Riset
             </p>
             <p className="mt-4 text-base text-slate-500 font-medium">
-              Everything you need to run, configure, and scale web applications, databases, and microservices in isolated environments.
+              Memberikan pengalaman langsung (hands-on) bagi mahasiswa dalam mengelola peladen, jaringan, dan aplikasi dalam lingkungan yang terisolasi dan aman.
             </p>
           </div>
 
@@ -278,9 +281,9 @@ export function LandingPage() {
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Cpu className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Dedicated KVM & LXC</h3>
+              <h3 className="text-lg font-bold text-slate-900">Praktikum KVM & LXC</h3>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
-                Choose between strict KVM hypervisor isolation for full operating system customizability, or fast LXC containers for minimal overhead.
+                Mahasiswa dapat memilih antara isolasi penuh KVM (Virtual Machine) atau container LXC yang ringan untuk berbagai skenario praktikum sistem operasi dan jaringan.
               </p>
             </div>
 
@@ -289,9 +292,9 @@ export function LandingPage() {
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <RotateCcw className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Instant Snapshots</h3>
+              <h3 className="text-lg font-bold text-slate-900">Manajemen Snapshot</h3>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
-                Take state snapshots before risky system updates or package installations. Revert changes instantly if something breaks.
+                Fitur snapshot memungkinkan mahasiswa untuk bereksperimen dengan konfigurasi sistem tanpa takut merusak lingkungan, karena status sistem dapat dikembalikan secara instan.
               </p>
             </div>
 
@@ -300,9 +303,9 @@ export function LandingPage() {
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Terminal className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Native Terminal</h3>
+              <h3 className="text-lg font-bold text-slate-900">Akses Konsol Web Terintegrasi</h3>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
-                Connect securely to your machine console directly inside your web browser. No SSH configuration or external key file required.
+                Mengakses terminal server langsung dari peramban web (browser) tanpa memerlukan konfigurasi SSH eksternal, memudahkan proses pembelajaran di lab maupun dari rumah.
               </p>
             </div>
 
@@ -311,9 +314,9 @@ export function LandingPage() {
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Zap className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Sub-minute Deploy</h3>
+              <h3 className="text-lg font-bold text-slate-900">Penyediaan Cepat (Sub-minute)</h3>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
-                Our template engine handles operating system cloning and network interface provisioning automatically in under one minute.
+                Sistem perutean dan templat cerdas kami secara otomatis membangun sistem operasi dan jaringan dalam waktu kurang dari satu menit, sehingga praktikum bisa segera dimulai.
               </p>
             </div>
 
@@ -322,9 +325,9 @@ export function LandingPage() {
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Shield className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Top-tier Security</h3>
+              <h3 className="text-lg font-bold text-slate-900">Lingkungan Terisolasi & Aman</h3>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
-                Each VPS has dedicated firewall settings and isolated VLAN routing. Your cloud environment is shielded from surrounding virtual machines.
+                Setiap mesin virtual mahasiswa beroperasi pada ruang yang terisolasi dengan aturan firewall khusus, mencegah intervensi antar proyek dan menjaga integritas data akademik.
               </p>
             </div>
 
@@ -333,154 +336,10 @@ export function LandingPage() {
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
                 <Globe className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Global Network</h3>
+              <h3 className="text-lg font-bold text-slate-900">Akses Akademik Terpusat</h3>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed font-medium">
-                High throughput uplinks ensure minimal packet drops and exceptional loading times for global API clients and web traffic.
+                Infrastruktur jaringan berkinerja tinggi memastikan stabilitas koneksi bagi dosen dan mahasiswa untuk mengakses proyek, API, atau basis data riset secara global.
               </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Pricing Section */}
-        <section id="pricing" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-100">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-xs font-extrabold tracking-wider text-blue-600 uppercase">Pricing Tiers</h2>
-            <p className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-              Simple, Predictable Pricing
-            </p>
-            <p className="mt-4 text-base text-slate-500 font-medium">
-              No hidden costs or unexpected data billing. Choose the resources that fit your application.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Tier 1 */}
-            <div className="bg-white p-8 rounded-2xl border border-slate-150 shadow-sm flex flex-col justify-between relative overflow-hidden">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Developer Starter</h3>
-                <p className="mt-2 text-xs text-slate-400 font-semibold uppercase">LXC Container</p>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">$5</span>
-                  <span className="text-sm font-semibold text-slate-400 ml-1">/ month</span>
-                </div>
-                <p className="mt-4 text-xs text-slate-500 leading-relaxed font-medium">
-                  Ideal for testing applications, small APIs, script scheduling, or personal staging.
-                </p>
-
-                <div className="mt-8 pt-8 border-t border-slate-100 space-y-4">
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    1 vCPU Core
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    2 GB DDR4 RAM
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    20 GB NVMe Storage
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    1 TB Monthly Traffic
-                  </div>
-                </div>
-              </div>
-              <div className="mt-8">
-                <Link 
-                  to="/login" 
-                  className="block w-full py-3 px-4 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-center font-semibold rounded-xl text-sm border border-slate-200 hover:border-blue-300 transition-all"
-                >
-                  Deploy Container
-                </Link>
-              </div>
-            </div>
-
-            {/* Tier 2 */}
-            <div className="bg-white p-8 rounded-2xl border-2 border-blue-500 shadow-lg shadow-blue-500/5 flex flex-col justify-between relative">
-              <div className="absolute top-4 right-4 bg-blue-600 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full tracking-wide">
-                POPULAR
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Developer Plus</h3>
-                <p className="mt-2 text-xs text-blue-600 font-bold uppercase">Dedicated KVM VPS</p>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">$15</span>
-                  <span className="text-sm font-semibold text-slate-400 ml-1">/ month</span>
-                </div>
-                <p className="mt-4 text-xs text-slate-500 leading-relaxed font-medium">
-                  Perfect for busy database hosts, production backends, and full Linux workspace environments.
-                </p>
-
-                <div className="mt-8 pt-8 border-t border-slate-100 space-y-4">
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    2 vCPU Cores
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    4 GB DDR4 RAM
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    50 GB NVMe Storage
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    3 TB Monthly Traffic
-                  </div>
-                </div>
-              </div>
-              <div className="mt-8">
-                <Link 
-                  to="/login" 
-                  className="block w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white text-center font-semibold rounded-xl text-sm shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 transition-all"
-                >
-                  Deploy VPS
-                </Link>
-              </div>
-            </div>
-
-            {/* Tier 3 */}
-            <div className="bg-white p-8 rounded-2xl border border-slate-150 shadow-sm flex flex-col justify-between relative overflow-hidden">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Production Node</h3>
-                <p className="mt-2 text-xs text-slate-400 font-semibold uppercase">Dedicated KVM VPS</p>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">$35</span>
-                  <span className="text-sm font-semibold text-slate-400 ml-1">/ month</span>
-                </div>
-                <p className="mt-4 text-xs text-slate-500 leading-relaxed font-medium">
-                  Designed for heavy enterprise production environments, Kubernetes nodes, and high traffic web sites.
-                </p>
-
-                <div className="mt-8 pt-8 border-t border-slate-100 space-y-4">
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    4 vCPU Cores
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    8 GB DDR4 RAM
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    100 GB NVMe Storage
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                    5 TB Monthly Traffic
-                  </div>
-                </div>
-              </div>
-              <div className="mt-8">
-                <Link 
-                  to="/login" 
-                  className="block w-full py-3 px-4 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-center font-semibold rounded-xl text-sm border border-slate-200 hover:border-blue-300 transition-all"
-                >
-                  Deploy Production VPS
-                </Link>
-              </div>
             </div>
           </div>
         </section>
@@ -491,15 +350,17 @@ export function LandingPage() {
       <footer className="relative z-10 border-t border-slate-100 bg-white/40 py-8 text-center text-xs text-slate-400 font-medium">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-md overflow-hidden bg-transparent">
+            <div className="w-8 h-8 rounded-md overflow-hidden bg-transparent">
               <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="font-bold text-slate-800">Cloud Baja Tegal (CBT)</span>
+            <div className="flex flex-col text-left">
+              <span className="font-bold text-slate-800 text-sm">Cloud Baja Tegal (CBT)</span>
+              <span className="text-[10px] uppercase">Politeknik Baja Tegal</span>
+            </div>
           </div>
-          <p>© {new Date().getFullYear()} Cloud Baja Tegal (CBT) Platform. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Politeknik Baja Tegal. Hak Cipta Dilindungi Undang-Undang.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a>
+            <a href="https://pbjt.ac.id" target="_blank" rel="noreferrer" className="hover:text-blue-600 transition-colors">Website Resmi PBJT</a>
           </div>
         </div>
       </footer>
