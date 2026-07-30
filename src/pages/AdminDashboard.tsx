@@ -373,13 +373,8 @@ export function AdminDashboard() {
           >
             <div className="flex items-center gap-3.5">
               <Users className="w-5 h-5" />
-              <span>Customer Orders</span>
+              <span>Personal Management</span>
             </div>
-            {summary?.pending_orders > 0 && (
-              <span className="px-2.5 py-0.5 bg-amber-500 text-slate-900 text-xs font-bold rounded-full shadow-sm">
-                {summary.pending_orders}
-              </span>
-            )}
           </button>
 
           <button
@@ -414,7 +409,7 @@ export function AdminDashboard() {
             className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 text-indigo-200 rounded-2xl text-sm font-semibold transition-all border border-white/10"
           >
             <Users className="w-4 h-4" />
-            <span>Customer View</span>
+            <span>Personal View</span>
           </button>
           <button
             onClick={handleLogout}
@@ -442,7 +437,7 @@ export function AdminDashboard() {
               <Menu className="w-5 h-5" />
             </button>
             <h2 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800">
-              {activeTab === 'orders' ? 'Customer Orders Management' : activeTab === 'vms' ? 'Node Instances Overview' : 'System Cluster Logs'}
+              {activeTab === 'orders' ? 'Personal Management' : activeTab === 'vms' ? 'Node Instances Overview' : 'System Cluster Logs'}
             </h2>
             <span className="text-xs px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full font-bold border border-indigo-100 hidden md:inline-block">
               Cluster: {targetNode}
@@ -463,9 +458,8 @@ export function AdminDashboard() {
         {/* ════════════════════════════════════════════════════════════════
             SECTION 2: Quick Stats Row
         ════════════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            { label: 'Pending Orders', value: summary?.pending_orders, sub: `${summary?.total_orders || 0} total orders`, icon: <Users className="w-5 h-5" />, color: 'from-amber-500 to-orange-500' },
             { label: 'Node Headroom', value: estimatedMaxNewVms, sub: 'est. new VMs can fit', icon: <TrendingUp className="w-5 h-5" />, color: 'from-violet-500 to-purple-600' },
             { label: 'Master Node CPU', value: `${cpuUsagePct.toFixed(1)}%`, sub: `of ${totalCores} vCores`, icon: <Cpu className="w-5 h-5" />, color: 'from-sky-500 to-blue-600' },
           ].map((stat) => (
@@ -588,102 +582,110 @@ export function AdminDashboard() {
             SECTION 4: Active View Area
         ════════════════════════════════════════════════════════════════ */}
         <SectionCard>
-          {/* ── Tab: Customer Orders ────────────────────────────────────── */}
+          {/* ── Tab: Personal Management ────────────────────────────────── */}
           {activeTab === 'orders' && (
-            <div className="p-5">
+            <div className="p-6">
               <SectionHeader
                 icon={<Users className="w-5 h-5" />}
-                title="Customer VM Orders"
-                subtitle="Manage incoming provisioning requests. Click 'Confirm' to send the activation code via email."
+                title="Personal Management & Cluster Configuration"
+                subtitle="Manage personal administrator profile, Proxmox VE API authentication security, and real-time telemetry stream preferences."
               />
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
-                  <thead>
-                    <tr className="text-slate-500 text-xs font-semibold uppercase tracking-wide bg-slate-50">
-                      <th className="py-3 px-4 rounded-l-lg">VM Name & ID</th>
-                      <th className="py-3 px-4">Customer</th>
-                      <th className="py-3 px-4">Specifications</th>
-                      <th className="py-3 px-4">Total Cost</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 rounded-r-lg text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isLoadingOrders ? (
-                      <tr><td colSpan={6} className="py-12 text-center text-slate-400 text-sm animate-pulse">Loading orders data...</td></tr>
-                    ) : orders.map((o) => (
-                      <tr key={o.id} className="border-t border-slate-100 hover:bg-indigo-50/30 transition-colors">
-                        <td className="py-3.5 px-4">
-                          <div className="font-semibold text-slate-800">{o.name}</div>
-                          <div className="text-[11px] text-slate-400 font-mono mt-0.5">{o.id?.slice(0, 8)}...</div>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600 text-sm">{o.userEmail}</td>
-                        <td className="py-3.5 px-4">
-                          <div className="flex gap-1.5">
-                            <span className="px-2 py-0.5 bg-sky-50 text-sky-700 rounded-md text-xs font-medium border border-sky-100">{o.cores}C</span>
-                            <span className="px-2 py-0.5 bg-violet-50 text-violet-700 rounded-md text-xs font-medium border border-violet-100">{(o.memory / 1024).toFixed(0)}GB RAM</span>
-                            <span className="px-2 py-0.5 bg-teal-50 text-teal-700 rounded-md text-xs font-medium border border-teal-100">{o.storage}GB SSD</span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 font-bold text-indigo-600">
-                          Rp {o.totalCost?.toLocaleString('id-ID')}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${statusBadge(o.status)}`}>
-                            {o.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          {o.status === 'PENDING' ? (
-                            <button
-                              onClick={() => handleConfirmOrder(o.id)}
-                              disabled={isGenerating === o.id}
-                              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors flex items-center gap-1.5 ml-auto"
-                            >
-                              {isGenerating === o.id ? (
-                                <><RefreshCw className="w-3 h-3 animate-spin" /> Processing...</>
-                              ) : (
-                                <><ChevronRight className="w-3 h-3" /> Confirm &amp; Email</>
-                              )}
-                            </button>
-                          ) : (
-                            <div className="flex items-center gap-2 justify-end">
-                              {o.activationCode && o.status !== 'FAILED' && (
-                                <>
-                                  <span className="font-mono text-xs bg-slate-100 px-2 py-1 rounded border border-slate-200">{o.activationCode}</span>
-                                  <button onClick={() => copyToClipboard(o.activationCode)} className="text-slate-400 hover:text-indigo-600 transition-colors">
-                                    {copiedCode === o.activationCode ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                                  </button>
-                                </>
-                              )}
-                              {o.status === 'FAILED' && (
-                                <button
-                                  onClick={async () => {
-                                    if (confirm('Are you sure you want to delete this failed order?')) {
-                                      try {
-                                        await api.delete(`/orders/${o.id}`);
-                                        const res = await api.get('/admin/orders');
-                                        if (res.data) setOrders(res.data);
-                                      } catch (err: any) {
-                                        alert(err.response?.data?.error || 'Failed to delete order');
-                                      }
-                                    }
-                                  }}
-                                  className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ml-auto"
-                                >
-                                  Delete
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                    {orders.length === 0 && !isLoadingOrders && (
-                      <tr><td colSpan={6} className="py-12 text-center text-slate-400 text-sm">No orders found yet.</td></tr>
-                    )}
-                  </tbody>
-                </table>
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-md">
+                        <ShieldCheck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-sm">Personal Admin Profile</h4>
+                        <p className="text-xs text-slate-500">Superuser Account Identity</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 mt-4 text-xs">
+                      <div className="flex justify-between py-1.5 border-b border-slate-200">
+                        <span className="text-slate-500">Account Role</span>
+                        <span className="font-bold text-indigo-600">SUPER_ADMIN</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 border-b border-slate-200">
+                        <span className="text-slate-500">Auth Mechanism</span>
+                        <span className="font-semibold text-slate-700">JWT Bearer Token (Stateless)</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 border-b border-slate-200">
+                        <span className="text-slate-500">Access Level</span>
+                        <span className="font-semibold text-emerald-600">Full Cluster Root Control</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-400">
+                    Active personal session verified
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2.5 bg-violet-600 text-white rounded-xl shadow-md">
+                        <Server className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-sm">Proxmox VE Cluster API</h4>
+                        <p className="text-xs text-slate-500">Hypervisor Target Connection</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 mt-4 text-xs">
+                      <div className="flex justify-between py-1.5 border-b border-slate-200">
+                        <span className="text-slate-500">Target Node</span>
+                        <span className="font-bold text-slate-800">{targetNode || 'Capybara'}</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 border-b border-slate-200">
+                        <span className="text-slate-500">Transport Security</span>
+                        <span className="font-semibold text-emerald-600">SSL/TLS Verified</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 border-b border-slate-200">
+                        <span className="text-slate-500">API Status</span>
+                        <span className="font-semibold text-slate-700">Online — Authenticated</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-400">
+                    Proxmox VE JSON API v2
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2.5 bg-sky-600 text-white rounded-xl shadow-md">
+                        <Activity className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-sm">Personal View Gateway</h4>
+                        <p className="text-xs text-slate-500">Live Telemetry &amp; VM Controls</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 mt-4 text-xs">
+                      <div className="flex justify-between py-1.5 border-b border-slate-200">
+                        <span className="text-slate-500">Telemetry Channel</span>
+                        <span className="font-bold text-slate-800">WebSocket WSS Streaming</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 border-b border-slate-200">
+                        <span className="text-slate-500">Refresh Cycle</span>
+                        <span className="font-semibold text-slate-700">Every 5 Seconds</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 border-b border-slate-200">
+                        <span className="text-slate-500">Power Operations</span>
+                        <span className="font-semibold text-emerald-600">Enabled</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
+                  >
+                    Switch to Personal View <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           )}
