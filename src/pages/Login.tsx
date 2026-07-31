@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import { GlassCard } from '@/components/ui/GlassCard';
-import { Server, Lock, User } from 'lucide-react';
+import { Server, Lock, User, Eye, EyeOff } from 'lucide-react';
 
 export function Login() {
   useEffect(() => {
@@ -15,6 +15,7 @@ export function Login() {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export function Login() {
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error;
-      setError(typeof errorMessage === 'string' ? errorMessage : 'Login failed');
+      setError(typeof errorMessage === 'string' ? errorMessage : 'Invalid credentials');
     } finally {
       setIsLoading(false);
     }
@@ -88,13 +89,25 @@ export function Login() {
             <div className="relative">
               <Lock className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 glass-input text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                className="w-full pl-10 pr-12 py-3 glass-input text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -106,22 +119,6 @@ export function Login() {
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-
-
-
-        <div className="mt-6 text-center space-y-2">
-          <p className="text-sm text-slate-500">
-            <Link to="/forgot-password" className="text-blue-600 font-semibold hover:underline">
-              Forgot your password?
-            </Link>
-          </p>
-          <p className="text-sm text-slate-500">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-blue-600 font-semibold hover:underline">
-              Sign Up here
-            </Link>
-          </p>
-        </div>
       </GlassCard>
     </div>
   );

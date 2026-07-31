@@ -101,3 +101,9 @@ body {
 @utility delay-300 { animation-delay: 300ms; }
 @utility delay-400 { animation-delay: 400ms; }
 @utility delay-500 { animation-delay: 500ms; }
+
+/* Suppress native browser password reveal eye icon so custom toggle is clean */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+}
