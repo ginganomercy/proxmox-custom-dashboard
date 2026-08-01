@@ -78,18 +78,13 @@ export function LandingPage() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
             ) : (
-              <>
-                <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
-                  Masuk
-                </Link>
-                <Link 
-                  to="/register" 
-                  className="px-4.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 transition-all flex items-center gap-1.5"
-                >
-                  Daftar
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </>
+              <Link 
+                to="/login" 
+                className="px-4.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 transition-all flex items-center gap-1.5"
+              >
+                Masuk ke Sistem
+                <ChevronRight className="w-4 h-4" />
+              </Link>
             )}
           </div>
 
@@ -124,23 +119,14 @@ export function LandingPage() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               ) : (
-                <>
-                  <Link 
-                    to="/login" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full py-3 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-center rounded-xl text-sm font-semibold transition-all"
-                  >
-                    Masuk
-                  </Link>
-                  <Link 
-                    to="/register" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-center rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
-                  >
-                    Daftar Sekarang
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </>
+                <Link 
+                  to="/login" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-center rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+                >
+                  Masuk ke Sistem
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
               )}
             </div>
           </div>
