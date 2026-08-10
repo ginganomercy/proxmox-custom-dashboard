@@ -32,8 +32,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
 
   if (!isOpen) return null;
 
-  // Cost calculation (Mock logic matching backend)
-  const cost = (cores * 10000) + (memory * 10) + (storage * 5000);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +55,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
       };
 
       const res = await api.post('/orders', payload);
-      toast.success('Pesanan berhasil dibuat! Segera hubungi Admin (WA: 0856117933) untuk pembayaran.', { duration: 10000 });
+      toast.success('Pesanan berhasil dibuat! Menunggu persetujuan Administrator.', { duration: 10000 });
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -146,16 +145,6 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
                   </p>
                 </div>
                 
-                {/* Total Price Calculator */}
-                <div className="col-span-2 mt-4 p-5 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100 flex justify-between items-center">
-                  <div>
-                    <h3 className="text-sm font-semibold text-indigo-900">Total Harga Estimasi</h3>
-                    <p className="text-xs text-indigo-600/80 mt-0.5">Sekali bayar untuk selamanya (Batas 1 VM/Akun)</p>
-                  </div>
-                  <div className="text-2xl font-black text-indigo-600">
-                    Rp {((cores * 10000) + (memory * 10) + (storage * 5000)).toLocaleString('id-ID')}
-                  </div>
-                </div>
               </div>
             </div>
           ) : (
@@ -179,12 +168,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-            <div className="bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100">
-              <span className="text-xs text-indigo-600 font-semibold block uppercase">Total Cost</span>
-              <span className="text-xl font-bold text-indigo-900">Rp {cost.toLocaleString('id-ID')}</span>
-            </div>
-
+          <div className="flex items-center justify-end pt-6 border-t border-slate-100">
             <div className="flex gap-3">
               {step === 2 && (
                 <button type="button" onClick={() => setStep(1)} className="px-5 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors">
