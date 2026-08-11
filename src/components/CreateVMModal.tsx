@@ -55,7 +55,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
       };
 
       const res = await api.post('/orders', payload);
-      toast.success('Pesanan berhasil dibuat! Menunggu persetujuan Administrator.', { duration: 10000 });
+      toast.success('Virtual Machine sedang dibuat! Proses ini memakan waktu 2-3 menit.', { duration: 10000 });
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -76,7 +76,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
 
         <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
           <ShoppingCart className="w-6 h-6 text-indigo-500" />
-          Request New VM Order
+          Create New VM
         </h2>
 
         {/* Stepper indicator */}
@@ -106,8 +106,8 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
                   </div>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Your Email (For Activation Code)</label>
-                  <input type="email" required value={userEmail} onChange={e => setUserEmail(e.target.value)} placeholder="e.g. raflypriyantoro@gmail.com" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">User Email (For Notification)</label>
+                  <input type="email" required value={userEmail} onChange={e => setUserEmail(e.target.value)} placeholder="e.g. user@domain.com" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-all" />
                 </div>
 
                 <div className="col-span-2">
@@ -176,7 +176,7 @@ export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps
                 </button>
               )}
               <button type="submit" disabled={isLoading} className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl font-medium shadow-lg shadow-indigo-500/30 transition-transform active:scale-95 disabled:opacity-70 flex items-center gap-2">
-                {isLoading ? 'Processing...' : step === 1 ? 'Next: Cloud-Init' : 'Request Order'}
+                {isLoading ? 'Processing...' : step === 1 ? 'Next: Cloud-Init' : 'Create VM'}
               </button>
             </div>
           </div>

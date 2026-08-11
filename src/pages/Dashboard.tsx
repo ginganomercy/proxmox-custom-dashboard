@@ -39,9 +39,6 @@ export function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [activatingOrder, setActivatingOrder] = useState<string | null>(null);
-  const [activationCodeInput, setActivationCodeInput] = useState<{ [key: string]: string }>({});
-  const [provisionStep, setProvisionStep] = useState<string>('');
   const [successMsg, setSuccessMsg] = useState<string>('');
 
   const checkAuth = () => {
@@ -119,111 +116,7 @@ export function Dashboard() {
     navigate('/login');
   };
 
-  const handleActivateOrder = async (orderId: string) => {
-    const code = activationCodeInput[orderId];
-    if (!code?.trim()) return;
-    
-    setActivatingOrder(orderId);
-    setProvisionStep('Memverifikasi kode aktivasi...');
-    
-    try {
-      // Step 1: Submit activation — backend returns 202 immediately
-      // The actual provisioning runs in a background goroutine on the server.
-      const res = await api.post(`/orders/${orderId}/activate`, { code: code.trim() });
-      
-      // If synchronous success (shouldn't happen normally, but handle it)
-      if (res.status === 200) {
-        setProvisionStep('✅ VM berhasil dibuat dan dinyalakan!');
-        setTimeout(() => { setActivatingOrder(null); setProvisionStep(''); fetchData(); }, 2000);
-        return;
-      }
 
-      // Step 2: 202 Accepted — start polling /orders/me for status
-      setProvisionStep('Memulai proses provisioning VM di cluster Proxmox...');
-      
-      let pollCount = 0;
-      const MAX_POLLS = 120; // 120 × 5s = 10 minutes max
-      
-      const poll = setInterval(async () => {
-        pollCount++;
-        
-        // Show progressive status messages while waiting
-        if (pollCount === 3)  setProvisionStep('Mengalokasikan VMID baru dari cluster...');
-        if (pollCount === 6)  setProvisionStep('Mengkloning template VM (ini membutuhkan waktu 1-3 menit)...');
-        if (pollCount === 15) setProvisionStep('Menunggu konfirmasi clone selesai dari Proxmox...');
-        if (pollCount === 25) setProvisionStep('Menyesuaikan ukuran disk sesuai pesanan...');
-        if (pollCount === 35) setProvisionStep('Menerapkan konfigurasi Cloud-Init (CPU, RAM, IP)...');
-        if (pollCount === 45) setProvisionStep('Menyalakan VM dan mendaftarkan ke sistem...');
-        
-        if (pollCount >= MAX_POLLS) {
-          clearInterval(poll);
-          setActivatingOrder(null);
-          setProvisionStep('');
-          alert('⚠️ Waktu menunggu habis. Silakan refresh halaman untuk melihat status VM terbaru.');
-          return;
-        }
-        
-        try {
-          const ordersRes = await api.get('/orders/me');
-          const updatedOrder = ordersRes.data?.find((o: any) => o.id === orderId);
-          
-          if (!updatedOrder) return; // still fetching, wait next poll
-          
-          if (updatedOrder.status === 'COMPLETED') {
-            clearInterval(poll);
-            setProvisionStep('✅ VM berhasil dibuat dan dinyalakan!');
-            setTimeout(() => { setActivatingOrder(null); setProvisionStep(''); fetchData(); }, 2500);
-          } else if (updatedOrder.status === 'FAILED') {
-            clearInterval(poll);
-            setActivatingOrder(null);
-            setProvisionStep('');
-            alert(`❌ Aktivasi gagal: ${updatedOrder.provisionError || 'Terjadi kesalahan di server. Hubungi Administrator.'}`);
-          }
-          // status === 'PROVISIONING' → keep polling
-        } catch {
-          // Transient poll error — ignore and retry next cycle
-        }
-      }, 5000);
-      
-    } catch (err: any) {
-      setActivatingOrder(null);
-      setProvisionStep('');
-      const msg = err.response?.data?.error || err.message || 'Gagal menghubungi server';
-      alert(`❌ Aktivasi gagal: ${msg}`);
-    }
-  };
-
-  const activeOrders = orders.filter(o => o.status === 'PENDING' || o.status === 'READY_TO_ACTIVATE' || o.status === 'FAILED');
-  const hasItems = vms.length > 0 || activeOrders.length > 0;
-
-  return (
-    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
-      {/* ── VM Provisioning Full-Screen Overlay ──────────────────────────────── */}
-      {activatingOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
-            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-5">
-              {provisionStep.startsWith('✅') ? (
-                <CheckCircle2 className="w-8 h-8 text-green-500" />
-              ) : (
-                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-              )}
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 mb-2">
-              {provisionStep.startsWith('✅') ? 'VM Siap!' : 'Menyiapkan Virtual Machine...'}
-            </h2>
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed">{provisionStep}</p>
-            {!provisionStep.startsWith('✅') && (
-              <div className="space-y-2">
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-pulse" style={{ width: '70%' }} />
-                </div>
-                <p className="text-xs text-slate-400">Harap jangan tutup atau refresh halaman ini</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Decorative background blobs */}
       <div className="fixed top-[-5%] right-[-5%] w-[40rem] h-[40rem] bg-blue-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
@@ -286,50 +179,40 @@ export function Dashboard() {
           </div>
         )}
 
-        {/* Onboarding Hero Section (Only shown if user has no VMs and no Orders) */}
-        {!hasItems && !isLoading && (
+        {/* Onboarding Hero Section */}
+        {!hasItems && !isLoading && user?.role === 'ADMIN' && (
           <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400 opacity-10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
             
             <div className="relative z-10 max-w-3xl">
               <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">
-                Mulai Perjalanan Cloud Anda
+                Tidak ada Virtual Machine
               </h1>
               <p className="text-blue-100 text-lg md:text-xl mb-8 font-light">
-                Cloud Baja Tegal (CBT) menyediakan Virtual Private Server (VPS) performa tinggi. Anda berhak memesan <span className="font-bold text-white bg-white/20 px-2 py-0.5 rounded-md">1 Server Eksklusif</span> per akun.
+                Sebagai Administrator, Anda dapat memesan VM baru untuk digunakan atau dialokasikan.
               </p>
-
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-8">
-                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                  <MonitorPlay className="w-5 h-5 text-blue-200" /> Tata Cara Pemesanan
-                </h3>
-                <ol className="space-y-4">
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm shrink-0">1</div>
-                    <p className="text-blue-50">Tekan tombol <strong>Pesan VM Sekarang</strong> di bawah untuk memilih spesifikasi server yang Anda butuhkan.</p>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm shrink-0">2</div>
-                    <p className="text-blue-50">Setelah sukses mengajukan pesanan, hubungi Admin via WhatsApp di <strong>0856117933</strong> untuk melakukan pembayaran tunai.</p>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm shrink-0">3</div>
-                    <p className="text-blue-50">Admin akan mengonfirmasi pembayaran dan mengirimkan <strong>Kode Aktivasi</strong> unik ke email Anda.</p>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm shrink-0">4</div>
-                    <p className="text-blue-50">Masukkan kode tersebut di halaman ini, dan Virtual Machine Anda akan menyala secara otomatis!</p>
-                  </li>
-                </ol>
-              </div>
 
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="bg-white text-indigo-700 hover:bg-blue-50 text-lg font-bold py-4 px-8 rounded-xl shadow-xl transition-transform hover:scale-105 flex items-center gap-3"
               >
-                <Rocket className="w-6 h-6 text-indigo-600" /> Pesan VM Sekarang
+                <Rocket className="w-6 h-6 text-indigo-600" /> Pesan VM Baru
               </button>
+            </div>
+          </div>
+        )}
+
+        {!hasItems && !isLoading && user?.role !== 'ADMIN' && (
+          <div className="bg-white rounded-3xl p-8 md:p-12 text-slate-800 shadow-sm border border-slate-100 text-center relative overflow-hidden">
+            <div className="relative z-10 max-w-xl mx-auto">
+              <MonitorPlay className="w-16 h-16 text-indigo-200 mx-auto mb-6" />
+              <h1 className="text-2xl font-bold tracking-tight mb-3">
+                Belum Ada Virtual Machine
+              </h1>
+              <p className="text-slate-500 mb-0">
+                Anda belum memiliki Virtual Machine (VM) yang terhubung ke akun ini. Jika Anda membutuhkan akses ke server, silakan hubungi Administrator.
+              </p>
             </div>
           </div>
         )}
@@ -340,12 +223,14 @@ export function Dashboard() {
           <GlassCard>
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-semibold text-lg text-slate-700">Virtual Machines & LXC</h2>
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-md"
-              >
-                <Plus className="w-4 h-4" /> Pesan VM Baru
-              </button>
+              {user?.role === 'ADMIN' && (
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-all shadow-md"
+                >
+                  <Plus className="w-4 h-4" /> Pesan VM Baru
+                </button>
+              )}
             </div>
             <DataTable 
               data={vms} 

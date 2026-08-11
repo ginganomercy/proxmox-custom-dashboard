@@ -116,7 +116,6 @@ export function AdminDashboard() {
   // Data States
   const [summary, setSummary] = useState<any>({ total_orders: 0, pending_orders: 0 });
   const [nodeStatus, setNodeStatus] = useState<any>(null);
-  const [orders, setOrders] = useState<any[]>([]);
   const [allVms, setAllVms] = useState<any[]>([]);
   const [clusterLogs, setClusterLogs] = useState<any[]>([]);
   const [clusterTasks, setClusterTasks] = useState<any[]>([]);
@@ -124,7 +123,6 @@ export function AdminDashboard() {
   
   // Independent Loading States
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [isLoadingVms, setIsLoadingVms] = useState(false);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
@@ -179,9 +177,6 @@ export function AdminDashboard() {
     };
   }, [activeTab, logTab]);
 
-  // Form States
-  const [copiedCode, setCopiedCode] = useState('');
-  const [isGenerating, setIsGenerating] = useState<string | null>(null);
 
   const checkAuth = () => {
     const token = Cookies.get('token');
@@ -221,30 +216,6 @@ export function AdminDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // 2. Lazy Load Orders (Anti-Race Condition via AbortController)
-  useEffect(() => {
-    if (activeTab !== 'orders') return;
-    const controller = new AbortController();
-    
-    const fetchOrders = async (silent = false) => {
-      if (!silent) setIsLoadingOrders(true);
-      try {
-        const res = await api.get('/admin/orders', { signal: controller.signal });
-        if (res.data) setOrders(res.data);
-      } catch (err: any) {
-        if (err.name !== 'CanceledError') console.error('Orders fetch failed:', err);
-      } finally {
-        if (!silent) setIsLoadingOrders(false);
-      }
-    };
-    
-    fetchOrders(false);
-    const interval = setInterval(() => fetchOrders(true), 10000); // stable 10s auto-refresh
-    return () => {
-      clearInterval(interval);
-      controller.abort(); // Cancel request if tab changes before completion
-    };
-  }, [activeTab]);
 
   // 3. Lazy Load VMs (Anti-Race Condition)
   useEffect(() => {
@@ -273,28 +244,6 @@ export function AdminDashboard() {
 
 
   const handleLogout = () => { Cookies.remove('token'); navigate('/login'); };
-
-  const handleConfirmOrder = async (orderId: string) => {
-    setIsGenerating(orderId);
-    try {
-      await api.post(`/admin/orders/${orderId}/generate`);
-      // Trigger refresh for orders tab and global summary
-      fetchGlobalData();
-      const res = await api.get('/admin/orders');
-      if (res.data) setOrders(res.data);
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to generate code');
-    } finally {
-      setIsGenerating(null);
-    }
-  };
-
-  const copyToClipboard = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    setTimeout(() => setCopiedCode(''), 2000);
-  };
-
   // ── Derived Proxmox Capacity Metrics ─────────────────────────────────────────
   const totalRamBytes = nodeStatus?.memory?.total ?? 0;
   const usedRamBytes = nodeStatus?.memory?.used ?? 0;
