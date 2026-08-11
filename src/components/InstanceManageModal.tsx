@@ -527,9 +527,7 @@ export default function InstanceManageModal({ vm, nodeName, onClose, onDeleteSuc
                       <h3 className="text-xl font-black text-red-800 uppercase tracking-wide">Danger Zone: Destroy VM</h3>
                       <p className="text-sm text-red-700 mt-2 leading-relaxed font-semibold">
                         Tindakan ini bersifat PERMANEN dan TIDAK BISA DIBATALKAN.
-                        Seluruh data, file, dan konfigurasi akan dimusnahkan. <br/><br/>
-                        <span className="font-black bg-red-200 px-2 py-1 rounded">WARNING: NO REFUNDS.</span><br/>
-                        Uang yang telah Anda bayarkan untuk server ini tidak akan dikembalikan jika Anda menghapusnya.
+                        Seluruh data, file, dan konfigurasi akan dimusnahkan.
                       </p>
                     </div>
                   </div>
