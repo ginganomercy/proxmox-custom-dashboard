@@ -116,8 +116,10 @@ export function Dashboard() {
     navigate('/login');
   };
 
+  const hasItems = vms.length > 0;
 
-
+  return (
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
       {/* Decorative background blobs */}
       <div className="fixed top-[-5%] right-[-5%] w-[40rem] h-[40rem] bg-blue-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
       <div className="fixed bottom-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-indigo-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
