@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Play, Square, HardDrive, Terminal, X, Power, PowerOff, Settings, Maximize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ConsoleViewer } from './ConsoleViewer';
@@ -67,6 +67,52 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
   const [activeMetrics, setActiveMetrics] = useState<VM | null>(null);
   const [isProcessing, setIsProcessing] = useState<number | null>(null);
   const consoleModalRef = useRef<HTMLDivElement>(null);
+
+  // Rate Calculation State
+  interface VMRates {
+    netinRate: number;
+    netoutRate: number;
+    diskIoRate: number;
+  }
+  const [rates, setRates] = useState<Record<number, VMRates>>({});
+  const prevDataRef = useRef<Record<number, VM>>({});
+  const lastUpdateRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    const now = Date.now();
+    const elapsedSeconds = (now - lastUpdateRef.current) / 1000;
+    
+    // Only calculate if interval is reasonable (e.g. not the first render, and not after sleep)
+    if (elapsedSeconds > 0 && elapsedSeconds < 300) {
+      const newRates: Record<number, VMRates> = {};
+      const prevData = prevDataRef.current;
+      
+      data.forEach(vm => {
+        const prev = prevData[vm.vmid];
+        if (prev) {
+          const netinDiff = Math.max(0, (vm.netin || 0) - (prev.netin || 0));
+          const netoutDiff = Math.max(0, (vm.netout || 0) - (prev.netout || 0));
+          
+          const currentDiskIo = (vm.diskread || 0) + (vm.diskwrite || 0);
+          const prevDiskIo = (prev.diskread || 0) + (prev.diskwrite || 0);
+          const diskioDiff = Math.max(0, currentDiskIo - prevDiskIo);
+          
+          newRates[vm.vmid] = {
+            netinRate: netinDiff / elapsedSeconds,
+            netoutRate: netoutDiff / elapsedSeconds,
+            diskIoRate: diskioDiff / elapsedSeconds,
+          };
+        }
+      });
+      setRates(prevRates => ({ ...prevRates, ...newRates }));
+    }
+    
+    // Update refs for next cycle
+    lastUpdateRef.current = now;
+    const newPrev: Record<number, VM> = {};
+    data.forEach(vm => newPrev[vm.vmid] = vm);
+    prevDataRef.current = newPrev;
+  }, [data]);
 
   const handlePowerAction = async (vm: VM, action: 'start' | 'stop') => {
     setIsProcessing(vm.vmid);
@@ -203,13 +249,29 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                 </div>
               </td>
               <td className="py-4 px-2 text-slate-600">
-                <div className="flex flex-col gap-1 text-[10px] font-mono">
-                  <div className="text-slate-600 flex items-center gap-1">
-                    <span className="text-emerald-500 font-bold">▼</span> {formatBytes(vm.netin || 0)} <span className="text-sky-500 font-bold ml-1">▲</span> {formatBytes(vm.netout || 0)}
-                  </div>
-                  <div className="text-slate-500 flex items-center gap-1">
-                    <span className="text-slate-400">Disk I/O:</span> {formatBytes((vm.diskread || 0) + (vm.diskwrite || 0))}
-                  </div>
+                <div className="flex flex-col gap-1.5 text-[10.5px] font-mono">
+                  {rates[vm.vmid] ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 min-w-[70px]">
+                          <span className={`font-bold ${rates[vm.vmid].netinRate > 0 ? 'text-emerald-500 animate-pulse' : 'text-emerald-500/50'}`}>▼</span> 
+                          <span className="text-slate-600">{formatBytes(rates[vm.vmid].netinRate)}/s</span>
+                        </div>
+                        <div className="flex items-center gap-1 min-w-[70px]">
+                          <span className={`font-bold ${rates[vm.vmid].netoutRate > 0 ? 'text-sky-500 animate-pulse' : 'text-sky-500/50'}`}>▲</span> 
+                          <span className="text-slate-600">{formatBytes(rates[vm.vmid].netoutRate)}/s</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-slate-500">
+                        <span className="text-slate-400">Disk I/O:</span> 
+                        <span className={`${rates[vm.vmid].diskIoRate > 0 ? 'text-indigo-500 font-medium animate-pulse' : 'text-slate-500'}`}>
+                          {formatBytes(rates[vm.vmid].diskIoRate)}/s
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-slate-400 italic">Calculating...</div>
+                  )}
                 </div>
               </td>
               <td className="py-4 px-2 text-right">
