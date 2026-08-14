@@ -250,8 +250,8 @@ export function AdminDashboard() {
   const usedRamBytes = nodeStatus?.memory?.used ?? 0;
   const availableRamBytes = Math.max(0, totalRamBytes - usedRamBytes);
 
-  const totalDiskBytes = nodeStatus?.rootfs?.total ?? 0;
-  const usedDiskBytes = nodeStatus?.rootfs?.used ?? 0;
+  const totalDiskBytes = nodeStatus?.storage_total ?? nodeStatus?.rootfs?.total ?? 0;
+  const usedDiskBytes = nodeStatus?.storage_used ?? nodeStatus?.rootfs?.used ?? 0;
   const availableDiskBytes = Math.max(0, totalDiskBytes - usedDiskBytes);
 
   const cpuUsagePct = nodeStatus?.cpu ? nodeStatus.cpu * 100 : 0;
@@ -267,6 +267,22 @@ export function AdminDashboard() {
 
   const totalAllocatedCores = allVms.reduce((sum, vm) => sum + (vm.cpus || 1), 0);
   const unallocatedCores = Math.max(0, totalCores - totalAllocatedCores);
+
+  // ── Swarm Cluster Partitioning ─────────────────────────────────────────────
+  const swarmManagers = allVms.filter(vm => vm.name?.toLowerCase().includes('manager'));
+  const swarmWorkers = allVms.filter(vm => vm.name?.toLowerCase().includes('worker'));
+  const genericNodes = allVms.filter(vm => !vm.name?.toLowerCase().includes('manager') && !vm.name?.toLowerCase().includes('worker'));
+
+  const partitionMetrics = (vms: any[]) => ({
+    cpu: vms.reduce((sum, vm) => sum + (vm.cpus || 1), 0),
+    ram: vms.reduce((sum, vm) => sum + (vm.maxmem || 0), 0),
+    disk: vms.reduce((sum, vm) => sum + (vm.maxdisk || 0), 0),
+    count: vms.length
+  });
+
+  const mgrMetrics = partitionMetrics(swarmManagers);
+  const wkrMetrics = partitionMetrics(swarmWorkers);
+  const genMetrics = partitionMetrics(genericNodes);
 
   // Estimated "available" capacity in terms of VM slots (based on Unallocated RAM headroom, 1GB per VM min)
   const estimatedMaxNewVms = Math.floor(unallocatedRam / (1 * 1024 * 1024 * 1024));
@@ -562,6 +578,62 @@ export function AdminDashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        </SectionCard>
+
+        {/* SECTION 3.5: Swarm Partitioning */}
+        <SectionCard>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+             <div className="flex items-center gap-3 mb-5">
+               <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                 <Server className="w-5 h-5" />
+               </div>
+               <div>
+                 <h2 className="text-base font-bold text-slate-800">Cluster Allocation Breakdown</h2>
+                 <p className="text-xs text-slate-500">Resource partitioning across Docker Swarm and Generic Nodes</p>
+               </div>
+             </div>
+             
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Swarm Managers */}
+                <div className="border border-indigo-100 bg-indigo-50/30 p-4 rounded-xl flex flex-col justify-between">
+                   <div className="flex items-center justify-between mb-3 border-b border-indigo-100 pb-2">
+                     <span className="font-bold text-indigo-900 text-sm flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-indigo-600"/> Swarm Managers</span>
+                     <span className="text-xs font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md">{mgrMetrics.count} VMs</span>
+                   </div>
+                   <div className="space-y-2 text-xs">
+                     <div className="flex justify-between items-center"><span className="text-slate-500">Allocated CPU</span><span className="font-semibold text-slate-700">{mgrMetrics.cpu} Cores</span></div>
+                     <div className="flex justify-between items-center"><span className="text-slate-500">Allocated RAM</span><span className="font-semibold text-slate-700">{fmtBytes(mgrMetrics.ram)}</span></div>
+                     <div className="flex justify-between items-center"><span className="text-slate-500">Allocated Disk</span><span className="font-semibold text-slate-700">{fmtBytes(mgrMetrics.disk)}</span></div>
+                   </div>
+                </div>
+
+                {/* Swarm Workers */}
+                <div className="border border-sky-100 bg-sky-50/30 p-4 rounded-xl flex flex-col justify-between">
+                   <div className="flex items-center justify-between mb-3 border-b border-sky-100 pb-2">
+                     <span className="font-bold text-sky-900 text-sm flex items-center gap-2"><Cpu className="w-4 h-4 text-sky-600"/> Swarm Workers</span>
+                     <span className="text-xs font-bold bg-sky-100 text-sky-700 px-2 py-0.5 rounded-md">{wkrMetrics.count} VMs</span>
+                   </div>
+                   <div className="space-y-2 text-xs">
+                     <div className="flex justify-between items-center"><span className="text-slate-500">Allocated CPU</span><span className="font-semibold text-slate-700">{wkrMetrics.cpu} Cores</span></div>
+                     <div className="flex justify-between items-center"><span className="text-slate-500">Allocated RAM</span><span className="font-semibold text-slate-700">{fmtBytes(wkrMetrics.ram)}</span></div>
+                     <div className="flex justify-between items-center"><span className="text-slate-500">Allocated Disk</span><span className="font-semibold text-slate-700">{fmtBytes(wkrMetrics.disk)}</span></div>
+                   </div>
+                </div>
+
+                {/* Generic Nodes */}
+                <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl flex flex-col justify-between">
+                   <div className="flex items-center justify-between mb-3 border-b border-slate-200 pb-2">
+                     <span className="font-bold text-slate-700 text-sm flex items-center gap-2"><HardDrive className="w-4 h-4 text-slate-500"/> Other / Generic</span>
+                     <span className="text-xs font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md">{genMetrics.count} VMs</span>
+                   </div>
+                   <div className="space-y-2 text-xs">
+                     <div className="flex justify-between items-center"><span className="text-slate-500">Allocated CPU</span><span className="font-semibold text-slate-700">{genMetrics.cpu} Cores</span></div>
+                     <div className="flex justify-between items-center"><span className="text-slate-500">Allocated RAM</span><span className="font-semibold text-slate-700">{fmtBytes(genMetrics.ram)}</span></div>
+                     <div className="flex justify-between items-center"><span className="text-slate-500">Allocated Disk</span><span className="font-semibold text-slate-700">{fmtBytes(genMetrics.disk)}</span></div>
+                   </div>
+                </div>
+             </div>
           </div>
         </SectionCard>
 
