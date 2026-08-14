@@ -39,6 +39,9 @@ export interface MonitorTarget {
   id: string;
   domain: string;
   status: string;
+  lastStatusCode: number;
+  sslValid: boolean;
+  sslExpiryDays: number;
   lastPing: string;
   createdAt: string;
   updatedAt: string;
@@ -61,5 +64,12 @@ export const monitorService = {
   getMonitorLogs: async (id: string): Promise<MonitorLog[]> => {
     const res = await api.get(`/monitors/${id}/logs`);
     return res.data;
+  },
+  addTarget: async (domain: string): Promise<MonitorTarget> => {
+    const res = await api.post('/monitors', { domain });
+    return res.data;
+  },
+  deleteTarget: async (id: string): Promise<void> => {
+    await api.delete(`/monitors/${id}`);
   }
 };
