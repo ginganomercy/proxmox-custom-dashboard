@@ -16,11 +16,15 @@ const UptimeWidget: React.FC = () => {
       const targets = await monitorService.getMonitors();
       setMonitors(targets);
 
+      // Concurrent fetching for all logs
       const logsData: Record<string, MonitorLog[]> = {};
-      for (const target of targets) {
-        const targetLogs = await monitorService.getMonitorLogs(target.id);
-        logsData[target.id] = targetLogs;
-      }
+      const logsPromises = targets.map(target => monitorService.getMonitorLogs(target.id));
+      const logsResults = await Promise.all(logsPromises);
+      
+      targets.forEach((target, idx) => {
+        logsData[target.id] = logsResults[idx];
+      });
+      
       setLogs(logsData);
     } catch (error) {
       console.error("Failed to fetch uptime data", error);
@@ -89,7 +93,9 @@ const UptimeWidget: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {monitors.map((monitor) => {
         const isUp = monitor.status === 'UP';
+        const isPending = monitor.status === 'PENDING';
         const targetLogs = logs[monitor.id] || [];
+        const isHttps = monitor.domain.startsWith('https');
         
         // Format data for chart
         const chartData = targetLogs.map(log => ({
@@ -101,7 +107,7 @@ const UptimeWidget: React.FC = () => {
         return (
           <div key={monitor.id} className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 overflow-hidden relative group">
             {/* Background Glow */}
-            <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 ${isUp ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+            <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 ${isUp ? 'bg-emerald-500' : isPending ? 'bg-indigo-500' : 'bg-red-500'}`}></div>
             
             <div className="flex justify-between items-start mb-6 relative z-10">
               <div>
@@ -113,16 +119,24 @@ const UptimeWidget: React.FC = () => {
                 
                 {/* Health Metrics Badges */}
                 <div className="flex flex-wrap gap-2 mt-3">
-                  <span className={`px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 ${monitor.lastStatusCode >= 200 && monitor.lastStatusCode < 400 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
-                    HTTP {monitor.lastStatusCode || 'N/A'}
-                  </span>
-                  {monitor.sslValid ? (
-                    <span className="px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 bg-sky-500/20 text-sky-400">
-                      <ShieldCheck className="w-3 h-3" /> SSL: {monitor.sslExpiryDays}d left
+                  {monitor.lastStatusCode > 0 && (
+                    <span className={`px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 ${monitor.lastStatusCode >= 200 && monitor.lastStatusCode < 400 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                      HTTP {monitor.lastStatusCode}
                     </span>
+                  )}
+                  {isHttps ? (
+                    monitor.sslValid ? (
+                      <span className="px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 bg-sky-500/20 text-sky-400">
+                        <ShieldCheck className="w-3 h-3" /> SSL: {monitor.sslExpiryDays}d left
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 bg-rose-500/20 text-rose-400">
+                        <ShieldAlert className="w-3 h-3" /> SSL: Invalid
+                      </span>
+                    )
                   ) : (
-                    <span className="px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 bg-rose-500/20 text-rose-400">
-                      <ShieldAlert className="w-3 h-3" /> SSL: Invalid
+                    <span className="px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 bg-slate-500/20 text-slate-400">
+                      <ShieldCheck className="w-3 h-3" /> SSL: N/A (HTTP)
                     </span>
                   )}
                 </div>
@@ -136,8 +150,8 @@ const UptimeWidget: React.FC = () => {
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
-                <div className={`px-4 py-2 rounded-full flex items-center gap-2 font-medium text-sm shadow-lg ${isUp ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
-                  {isUp ? <CheckCircle2 className="w-4 h-4" /> : <ServerCrash className="w-4 h-4" />}
+                <div className={`px-4 py-2 rounded-full flex items-center gap-2 font-medium text-sm shadow-lg ${isUp ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : isPending ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                  {isUp ? <CheckCircle2 className="w-4 h-4" /> : isPending ? <Activity className="w-4 h-4 animate-spin" /> : <ServerCrash className="w-4 h-4" />}
                   {monitor.status}
                 </div>
               </div>
