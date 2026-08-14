@@ -115,8 +115,9 @@ const UptimeWidget: React.FC = () => {
                   <Globe2 className="w-5 h-5 text-slate-400" />
                   {monitor.domain.replace('https://', '').replace('http://', '')}
                 </h3>
-                <p className="text-sm text-slate-500 mt-1">Last checked: {new Date(monitor.lastPing).toLocaleTimeString()}</p>
-                
+                <p className="text-sm text-slate-500 mt-1">
+                  Last checked: {isPending ? 'Waiting for first ping...' : new Date(monitor.lastPing).toLocaleTimeString()}
+                </p>
                 {/* Health Metrics Badges */}
                 <div className="flex flex-wrap gap-2 mt-3">
                   {monitor.lastStatusCode > 0 && (
@@ -125,7 +126,11 @@ const UptimeWidget: React.FC = () => {
                     </span>
                   )}
                   {isHttps ? (
-                    monitor.sslValid ? (
+                    isPending ? (
+                      <span className="px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 bg-slate-500/20 text-slate-400">
+                        <ShieldCheck className="w-3 h-3" /> SSL: Pending
+                      </span>
+                    ) : monitor.sslValid ? (
                       <span className="px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 bg-sky-500/20 text-sky-400">
                         <ShieldCheck className="w-3 h-3" /> SSL: {monitor.sslExpiryDays}d left
                       </span>
