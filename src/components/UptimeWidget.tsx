@@ -42,8 +42,8 @@ const UptimeWidget: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-48 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10">
-        <Activity className="animate-spin text-blue-400 w-8 h-8" />
+      <div className="flex justify-center items-center h-48 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <Activity className="animate-spin text-indigo-500 w-8 h-8" />
       </div>
     );
   }
@@ -77,9 +77,9 @@ const UptimeWidget: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mt-6 mb-4 px-1">
-        <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-          <Activity className="w-5 h-5 text-indigo-400" />
+      <div className="flex justify-between items-center mt-2 mb-6 px-1">
+        <h2 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+          <Activity className="w-5 h-5 text-indigo-500" />
           Active Monitors
         </h2>
         <button 
@@ -105,17 +105,17 @@ const UptimeWidget: React.FC = () => {
         }));
 
         return (
-          <div key={monitor.id} className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 overflow-hidden relative group">
+          <div key={monitor.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 overflow-hidden relative group">
             {/* Background Glow */}
             <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 ${isUp ? 'bg-emerald-500' : isPending ? 'bg-indigo-500' : 'bg-red-500'}`}></div>
             
             <div className="flex justify-between items-start mb-6 relative z-10">
               <div>
-                <h3 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
                   <Globe2 className="w-5 h-5 text-slate-400" />
                   {monitor.domain.replace('https://', '').replace('http://', '')}
                 </h3>
-                <p className="text-sm text-gray-400 mt-1">Last checked: {new Date(monitor.lastPing).toLocaleTimeString()}</p>
+                <p className="text-sm text-slate-500 mt-1">Last checked: {new Date(monitor.lastPing).toLocaleTimeString()}</p>
                 
                 {/* Health Metrics Badges */}
                 <div className="flex flex-wrap gap-2 mt-3">
@@ -161,7 +161,7 @@ const UptimeWidget: React.FC = () => {
               {chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff15" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                     <XAxis 
                       dataKey="time" 
                       stroke="#888888" 
