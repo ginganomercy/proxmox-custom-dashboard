@@ -248,18 +248,28 @@ export function AdminDashboard() {
   // ── Derived Proxmox Capacity Metrics ─────────────────────────────────────────
   const totalRamBytes = nodeStatus?.memory?.total ?? 0;
   const usedRamBytes = nodeStatus?.memory?.used ?? 0;
-  const availableRamBytes = totalRamBytes - usedRamBytes;
+  const availableRamBytes = Math.max(0, totalRamBytes - usedRamBytes);
 
   const totalDiskBytes = nodeStatus?.rootfs?.total ?? 0;
   const usedDiskBytes = nodeStatus?.rootfs?.used ?? 0;
-  const availableDiskBytes = totalDiskBytes - usedDiskBytes;
+  const availableDiskBytes = Math.max(0, totalDiskBytes - usedDiskBytes);
 
   const cpuUsagePct = nodeStatus?.cpu ? nodeStatus.cpu * 100 : 0;
   const totalCores = nodeStatus?.cpuinfo?.cpus ?? 0;
   const cpuModel = nodeStatus?.cpuinfo?.model ?? 'N/A';
 
-  // Estimated "available" capacity in terms of VM slots (based on RAM headroom, 1GB per VM min)
-  const estimatedMaxNewVms = Math.floor(availableRamBytes / (1 * 1024 * 1024 * 1024));
+  // Allocation Metrics
+  const totalAllocatedRam = allVms.reduce((sum, vm) => sum + (vm.maxmem || 0), 0);
+  const unallocatedRam = Math.max(0, totalRamBytes - totalAllocatedRam);
+
+  const totalAllocatedDisk = allVms.reduce((sum, vm) => sum + (vm.maxdisk || 0), 0);
+  const unallocatedDisk = Math.max(0, totalDiskBytes - totalAllocatedDisk);
+
+  const totalAllocatedCores = allVms.reduce((sum, vm) => sum + (vm.cpus || 1), 0);
+  const unallocatedCores = Math.max(0, totalCores - totalAllocatedCores);
+
+  // Estimated "available" capacity in terms of VM slots (based on Unallocated RAM headroom, 1GB per VM min)
+  const estimatedMaxNewVms = Math.floor(unallocatedRam / (1 * 1024 * 1024 * 1024));
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
@@ -285,7 +295,7 @@ export function AdminDashboard() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 w-72 bg-[#0b162c] text-white flex flex-col flex-shrink-0 border-r border-slate-800 shadow-xl z-40
+        className={`fixed inset-y-0 left-0 w-72 bg-blue-950 text-white flex flex-col flex-shrink-0 border-r border-blue-900 shadow-xl z-40
           transform transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0 lg:static lg:z-20`}
@@ -297,7 +307,7 @@ export function AdminDashboard() {
             </div>
             <div>
               <h1 className="font-bold text-lg tracking-tight text-white">Admin Control</h1>
-              <p className="text-xs text-indigo-300 font-medium">Cloud Baja Tegal</p>
+              <p className="text-xs text-cyan-400 font-medium">Cloud Baja Tegal</p>
             </div>
           </div>
           {/* Close button — visible on mobile only */}
@@ -317,8 +327,8 @@ export function AdminDashboard() {
             onClick={() => { setActiveTab('orders'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'orders'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
-                : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30 font-bold'
+                : 'text-slate-300 hover:bg-blue-800/50 hover:text-white'
             }`}
           >
             <div className="flex items-center gap-3.5">
@@ -331,8 +341,8 @@ export function AdminDashboard() {
             onClick={() => { setActiveTab('vms'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'vms'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
-                : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30 font-bold'
+                : 'text-slate-300 hover:bg-blue-800/50 hover:text-white'
             }`}
           >
             <Server className="w-5 h-5" />
@@ -343,8 +353,8 @@ export function AdminDashboard() {
             onClick={() => { setActiveTab('logs'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'logs'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
-                : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30 font-bold'
+                : 'text-slate-300 hover:bg-blue-800/50 hover:text-white'
             }`}
           >
             <FileText className="w-5 h-5" />
@@ -355,8 +365,8 @@ export function AdminDashboard() {
             onClick={() => { setActiveTab('uptime'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'uptime'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
-                : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30 font-bold'
+                : 'text-slate-300 hover:bg-blue-800/50 hover:text-white'
             }`}
           >
             <Activity className="w-5 h-5" />
@@ -399,9 +409,9 @@ export function AdminDashboard() {
               <Menu className="w-5 h-5" />
             </button>
             <h2 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800">
-              {activeTab === 'orders' ? 'Personal Management' : activeTab === 'vms' ? 'Node Instances Overview' : 'System Cluster Logs'}
+              {activeTab === 'orders' ? 'Personal Management' : activeTab === 'vms' ? 'Node Instances Overview' : activeTab === 'logs' ? 'System Cluster Logs' : 'API & Service Uptime'}
             </h2>
-            <span className="text-xs px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full font-bold border border-indigo-100 hidden md:inline-block">
+            <span className="text-xs px-3 py-1 bg-cyan-50 text-cyan-700 rounded-full font-bold border border-cyan-100 hidden md:inline-block">
               Cluster: {targetNode}
             </span>
           </div>
@@ -422,8 +432,8 @@ export function AdminDashboard() {
         ════════════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            { label: 'Node Headroom', value: estimatedMaxNewVms, sub: 'est. new VMs can fit', icon: <TrendingUp className="w-5 h-5" />, color: 'from-violet-500 to-purple-600' },
-            { label: 'Master Node CPU', value: `${cpuUsagePct.toFixed(1)}%`, sub: `of ${totalCores} vCores`, icon: <Cpu className="w-5 h-5" />, color: 'from-sky-500 to-blue-600' },
+            { label: 'Unallocated VM Slots', value: estimatedMaxNewVms, sub: 'est. new VMs can fit', icon: <TrendingUp className="w-5 h-5" />, color: 'from-cyan-500 to-blue-600' },
+            { label: 'Master Node CPU', value: `${cpuUsagePct.toFixed(1)}%`, sub: `of ${totalCores} vCores`, icon: <Cpu className="w-5 h-5" />, color: 'from-blue-500 to-indigo-600' },
           ].map((stat) => (
             <div key={stat.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
               <div className={`p-2.5 bg-gradient-to-br ${stat.color} text-white rounded-xl shadow-lg flex-shrink-0`}>
@@ -442,17 +452,17 @@ export function AdminDashboard() {
             SECTION 3: Proxmox Node Capacity (Real Data)
         ════════════════════════════════════════════════════════════════ */}
         <SectionCard className="!overflow-visible">
-          <div className="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 rounded-2xl">
+          <div className="bg-gradient-to-r from-blue-900 to-cyan-900 p-5 rounded-2xl shadow-inner">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white/10 rounded-xl">
-                  <Activity className="w-5 h-5 text-indigo-300" />
+                  <Activity className="w-5 h-5 text-cyan-300" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white">Live Node Capacity — <span className="text-indigo-300">{targetNode}</span></h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Uptime: <span className="text-slate-300 font-medium">{nodeStatus?.uptime ? fmtUptime(nodeStatus.uptime) : '—'}</span>
-                    &nbsp;·&nbsp; CPU Model: <span className="text-slate-300 font-medium">{cpuModel}</span>
+                  <h2 className="text-base font-bold text-white">Live Node Capacity — <span className="text-cyan-300">{targetNode}</span></h2>
+                  <p className="text-xs text-cyan-100/70 mt-0.5">
+                    Uptime: <span className="text-cyan-100 font-medium">{nodeStatus?.uptime ? fmtUptime(nodeStatus.uptime) : '—'}</span>
+                    &nbsp;·&nbsp; CPU Model: <span className="text-cyan-100 font-medium">{cpuModel}</span>
                   </p>
                 </div>
               </div>
@@ -461,9 +471,14 @@ export function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* CPU Card */}
               <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Cpu className="w-4 h-4 text-sky-400" />
-                  <span className="text-sm font-semibold text-white">CPU</span>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-cyan-400" />
+                    <span className="text-sm font-semibold text-white">CPU</span>
+                  </div>
+                  <span className="text-xs font-bold px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-md border border-yellow-500/30">
+                    Allocated: {totalAllocatedCores}
+                  </span>
                 </div>
                 <StatBar
                   label="Core Utilization"
@@ -471,68 +486,78 @@ export function AdminDashboard() {
                   total={100}
                   usedLabel={`${cpuUsagePct.toFixed(1)}%`}
                   totalLabel={`${totalCores} vCores`}
-                  color="bg-sky-500"
+                  color="bg-cyan-500"
                 />
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div className="text-lg font-bold text-sky-300">{totalCores}</div>
-                    <div className="text-[10px] text-slate-500 uppercase">Total Cores</div>
+                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                    <div className="text-lg font-bold text-yellow-400">{unallocatedCores}</div>
+                    <div className="text-[10px] text-cyan-100/60 uppercase">Unallocated</div>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div className="text-lg font-bold text-sky-300">{(totalCores * (1 - cpuUsagePct / 100)).toFixed(0)}</div>
-                    <div className="text-[10px] text-slate-500 uppercase">Avail. Cores</div>
+                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                    <div className="text-lg font-bold text-cyan-300">{totalCores}</div>
+                    <div className="text-[10px] text-cyan-100/60 uppercase">Total Cores</div>
                   </div>
                 </div>
               </div>
 
               {/* RAM Card */}
               <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
-                <div className="flex items-center gap-2">
-                  <MemoryStick className="w-4 h-4 text-violet-400" />
-                  <span className="text-sm font-semibold text-white">Memory (RAM)</span>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <MemoryStick className="w-4 h-4 text-blue-400" />
+                    <span className="text-sm font-semibold text-white">Memory (RAM)</span>
+                  </div>
+                  <span className="text-xs font-bold px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-md border border-yellow-500/30">
+                    Allocated: {fmtBytes(totalAllocatedRam)}
+                  </span>
                 </div>
                 <StatBar
-                  label="RAM Utilization"
+                  label="Physical RAM Usage"
                   used={usedRamBytes}
                   total={totalRamBytes}
                   usedLabel={fmtBytes(usedRamBytes)}
                   totalLabel={fmtBytes(totalRamBytes)}
-                  color="bg-violet-500"
+                  color="bg-blue-500"
                 />
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div className="text-lg font-bold text-violet-300">{fmtBytes(availableRamBytes)}</div>
-                    <div className="text-[10px] text-slate-500 uppercase">Available</div>
+                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                    <div className="text-lg font-bold text-yellow-400">{fmtBytes(unallocatedRam)}</div>
+                    <div className="text-[10px] text-cyan-100/60 uppercase">Unallocated</div>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div className="text-lg font-bold text-violet-300">{estimatedMaxNewVms}</div>
-                    <div className="text-[10px] text-slate-500 uppercase">VM Slots</div>
+                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                    <div className="text-lg font-bold text-blue-300">{estimatedMaxNewVms}</div>
+                    <div className="text-[10px] text-cyan-100/60 uppercase">Free VM Slots</div>
                   </div>
                 </div>
               </div>
 
               {/* Storage Card */}
               <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
-                <div className="flex items-center gap-2">
-                  <HardDrive className="w-4 h-4 text-teal-400" />
-                  <span className="text-sm font-semibold text-white">Storage (Root FS)</span>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <HardDrive className="w-4 h-4 text-sky-400" />
+                    <span className="text-sm font-semibold text-white">Storage (Root FS)</span>
+                  </div>
+                  <span className="text-xs font-bold px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-md border border-yellow-500/30">
+                    Allocated: {fmtBytes(totalAllocatedDisk)}
+                  </span>
                 </div>
                 <StatBar
-                  label="Disk Utilization"
+                  label="Physical Disk Usage"
                   used={usedDiskBytes}
                   total={totalDiskBytes}
                   usedLabel={fmtBytes(usedDiskBytes)}
                   totalLabel={fmtBytes(totalDiskBytes)}
-                  color="bg-teal-500"
+                  color="bg-sky-500"
                 />
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div className="text-lg font-bold text-teal-300">{fmtBytes(availableDiskBytes)}</div>
-                    <div className="text-[10px] text-slate-500 uppercase">Free Space</div>
+                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                    <div className="text-lg font-bold text-yellow-400">{fmtBytes(unallocatedDisk)}</div>
+                    <div className="text-[10px] text-cyan-100/60 uppercase">Unallocated</div>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center">
-                    <div className="text-lg font-bold text-teal-300">{totalDiskBytes > 0 ? ((usedDiskBytes / totalDiskBytes) * 100).toFixed(0) : 0}%</div>
-                    <div className="text-[10px] text-slate-500 uppercase">Used</div>
+                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                    <div className="text-lg font-bold text-sky-300">{totalDiskBytes > 0 ? ((usedDiskBytes / totalDiskBytes) * 100).toFixed(0) : 0}%</div>
+                    <div className="text-[10px] text-cyan-100/60 uppercase">Used Physical</div>
                   </div>
                 </div>
               </div>
@@ -555,8 +580,8 @@ export function AdminDashboard() {
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2.5 bg-cyan-600 text-white rounded-xl shadow-md">
                         <ShieldCheck className="w-5 h-5" />
                       </div>
                       <div>
@@ -567,7 +592,7 @@ export function AdminDashboard() {
                     <div className="space-y-2 mt-4 text-xs">
                       <div className="flex justify-between py-1.5 border-b border-slate-200">
                         <span className="text-slate-500">Account Role</span>
-                        <span className="font-bold text-indigo-600">SUPER_ADMIN</span>
+                        <span className="font-bold text-cyan-600">SUPER_ADMIN</span>
                       </div>
                       <div className="flex justify-between py-1.5 border-b border-slate-200">
                         <span className="text-slate-500">Auth Mechanism</span>
@@ -587,7 +612,7 @@ export function AdminDashboard() {
                 <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2.5 bg-violet-600 text-white rounded-xl shadow-md">
+                      <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-md">
                         <Server className="w-5 h-5" />
                       </div>
                       <div>
@@ -643,7 +668,7 @@ export function AdminDashboard() {
                   </div>
                   <button
                     onClick={() => navigate('/dashboard')}
-                    className="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
+                    className="mt-4 w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
                   >
                     Switch to Personal View <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -674,19 +699,19 @@ export function AdminDashboard() {
                 title="Proxmox Cluster Logs & Tasks"
                 subtitle="Authentic Proxmox VE cluster execution audit logs. Switch between worker Tasks history and live system daemon Cluster log."
               />
-              <div className="bg-[#0b162c] rounded-2xl border border-slate-800 shadow-inner overflow-hidden">
+              <div className="bg-blue-950 rounded-2xl border border-blue-900 shadow-inner overflow-hidden">
                 {/* Proxmox VE Authentic Sub-tab Toggle Bar */}
-                <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900/80">
+                <div className="flex items-center justify-between px-6 py-3 border-b border-blue-900 bg-blue-900/50">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setLogTab('tasks')}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'tasks' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-800/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'tasks' ? 'bg-cyan-600 text-white shadow-md shadow-cyan-500/20' : 'bg-blue-900/60 text-blue-300 hover:bg-blue-800 hover:text-white'}`}
                     >
                       <Terminal className="w-3.5 h-3.5" /> Tasks
                     </button>
                     <button
                       onClick={() => setLogTab('clusterlog')}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'clusterlog' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-800/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'clusterlog' ? 'bg-cyan-600 text-white shadow-md shadow-cyan-500/20' : 'bg-blue-900/60 text-blue-300 hover:bg-blue-800 hover:text-white'}`}
                     >
                       <FileText className="w-3.5 h-3.5" /> Cluster log
                     </button>
@@ -698,7 +723,7 @@ export function AdminDashboard() {
                   <div className="p-2 overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-800/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <tr className="border-b border-blue-900/80 text-[11px] font-bold text-cyan-300 uppercase tracking-wider">
                           <th className="py-3 px-4">Start Time ↓</th>
                           <th className="py-3 px-4">End Time</th>
                           <th className="py-3 px-4">Node</th>
@@ -707,7 +732,7 @@ export function AdminDashboard() {
                           <th className="py-3 px-4">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="text-xs font-mono text-slate-300 divide-y divide-slate-800/50">
+                      <tbody className="text-xs font-mono text-blue-100 divide-y divide-blue-900/50">
                         {isLoadingTasks && clusterTasks.length === 0 ? (
                           <tr><td colSpan={6} className="py-12 text-center text-slate-500 animate-pulse">Fetching cluster tasks...</td></tr>
                         ) : clusterTasks.map((taskItem, idx) => {
@@ -731,10 +756,10 @@ export function AdminDashboard() {
                           
                           return (
                             <tr key={idx} className={`transition-colors ${isOK ? 'hover:bg-white/5' : 'bg-red-500/15 hover:bg-red-500/25 text-red-200'}`}>
-                              <td className="py-3 px-4 text-slate-400 whitespace-nowrap">{startStr}</td>
-                              <td className="py-3 px-4 text-slate-400 whitespace-nowrap">{endStr}</td>
-                              <td className="py-3 px-4 text-slate-300">{taskItem.node || targetNode}</td>
-                              <td className="py-3 px-4 text-indigo-300 font-semibold">{taskItem.user || 'root@pam'}</td>
+                              <td className="py-3 px-4 text-cyan-200/70 whitespace-nowrap">{startStr}</td>
+                              <td className="py-3 px-4 text-cyan-200/70 whitespace-nowrap">{endStr}</td>
+                              <td className="py-3 px-4 text-blue-200">{taskItem.node || targetNode}</td>
+                              <td className="py-3 px-4 text-cyan-400 font-semibold">{taskItem.user || 'root@pam'}</td>
                               <td className="py-3 px-4 font-medium">{description}</td>
                               <td className="py-3 px-4">
                                 {isOK ? (
@@ -756,7 +781,7 @@ export function AdminDashboard() {
                   <div className="p-2 overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-800/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <tr className="border-b border-blue-900/80 text-[11px] font-bold text-cyan-300 uppercase tracking-wider">
                           <th className="py-3 px-4">Time</th>
                           <th className="py-3 px-4">Node</th>
                           <th className="py-3 px-4">Service</th>
@@ -765,7 +790,7 @@ export function AdminDashboard() {
                           <th className="py-3 px-4">Message</th>
                         </tr>
                       </thead>
-                      <tbody className="text-xs font-mono text-slate-300 divide-y divide-slate-800/50">
+                      <tbody className="text-xs font-mono text-blue-100 divide-y divide-blue-900/50">
                         {isLoadingLogs && clusterLogs.length === 0 ? (
                           <tr><td colSpan={6} className="py-12 text-center text-slate-500 animate-pulse">Fetching cluster logs...</td></tr>
                         ) : clusterLogs.map((logItem, idx) => {
@@ -773,12 +798,12 @@ export function AdminDashboard() {
                           const timeStr = dateObj.toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
                           return (
                             <tr key={idx} className="hover:bg-white/5 transition-colors">
-                              <td className="py-3 px-4 text-slate-400 whitespace-nowrap">{timeStr}</td>
-                              <td className="py-3 px-4 text-slate-400">{logItem.node || targetNode}</td>
-                              <td className="py-3 px-4 text-amber-300/90">{logItem.tag || 'pvedaemon'}</td>
-                              <td className="py-3 px-4 text-slate-500">{logItem.pid || 'N/A'}</td>
-                              <td className="py-3 px-4 text-indigo-300 font-semibold">{logItem.user || 'root@pam'}</td>
-                              <td className="py-3 px-4 text-slate-200 font-medium">{logItem.msg || logItem.type || 'cluster event'}</td>
+                              <td className="py-3 px-4 text-cyan-200/70 whitespace-nowrap">{timeStr}</td>
+                              <td className="py-3 px-4 text-cyan-200/70">{logItem.node || targetNode}</td>
+                              <td className="py-3 px-4 text-yellow-400/90">{logItem.tag || 'pvedaemon'}</td>
+                              <td className="py-3 px-4 text-blue-300/70">{logItem.pid || 'N/A'}</td>
+                              <td className="py-3 px-4 text-cyan-400 font-semibold">{logItem.user || 'root@pam'}</td>
+                              <td className="py-3 px-4 text-white font-medium">{logItem.msg || logItem.type || 'cluster event'}</td>
                             </tr>
                           );
                         })}
