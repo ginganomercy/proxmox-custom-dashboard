@@ -295,7 +295,7 @@ export function AdminDashboard() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 w-72 bg-blue-950 text-white flex flex-col flex-shrink-0 border-r border-blue-900 shadow-xl z-40
+        className={`fixed inset-y-0 left-0 w-72 bg-blue-950 text-blue-50 flex flex-col flex-shrink-0 border-r border-blue-900 shadow-xl z-40
           transform transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0 lg:static lg:z-20`}
@@ -306,7 +306,7 @@ export function AdminDashboard() {
               <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="font-bold text-lg tracking-tight text-white">Admin Control</h1>
+              <h1 className="font-bold text-lg tracking-tight text-blue-50">Admin Control</h1>
               <p className="text-xs text-cyan-400 font-medium">Cloud Baja Tegal</p>
             </div>
           </div>
@@ -328,7 +328,7 @@ export function AdminDashboard() {
             className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'orders'
                 ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30 font-bold'
-                : 'text-slate-300 hover:bg-blue-800/50 hover:text-white'
+                : 'text-slate-300 hover:bg-blue-800/50 hover:text-blue-50'
             }`}
           >
             <div className="flex items-center gap-3.5">
@@ -342,7 +342,7 @@ export function AdminDashboard() {
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'vms'
                 ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30 font-bold'
-                : 'text-slate-300 hover:bg-blue-800/50 hover:text-white'
+                : 'text-slate-300 hover:bg-blue-800/50 hover:text-blue-50'
             }`}
           >
             <Server className="w-5 h-5" />
@@ -354,7 +354,7 @@ export function AdminDashboard() {
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'logs'
                 ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30 font-bold'
-                : 'text-slate-300 hover:bg-blue-800/50 hover:text-white'
+                : 'text-slate-300 hover:bg-blue-800/50 hover:text-blue-50'
             }`}
           >
             <FileText className="w-5 h-5" />
@@ -366,7 +366,7 @@ export function AdminDashboard() {
             className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
               activeTab === 'uptime'
                 ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30 font-bold'
-                : 'text-slate-300 hover:bg-blue-800/50 hover:text-white'
+                : 'text-slate-300 hover:bg-blue-800/50 hover:text-blue-50'
             }`}
           >
             <Activity className="w-5 h-5" />
@@ -455,11 +455,11 @@ export function AdminDashboard() {
           <div className="bg-gradient-to-r from-blue-900 to-cyan-900 p-5 rounded-2xl shadow-inner">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-xl">
+                <div className="p-2 bg-black/10 rounded-xl">
                   <Activity className="w-5 h-5 text-cyan-300" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white">Live Node Capacity — <span className="text-cyan-300">{targetNode}</span></h2>
+                  <h2 className="text-base font-bold text-cyan-50">Live Node Capacity — <span className="text-cyan-300">{targetNode}</span></h2>
                   <p className="text-xs text-cyan-100/70 mt-0.5">
                     Uptime: <span className="text-cyan-100 font-medium">{nodeStatus?.uptime ? fmtUptime(nodeStatus.uptime) : '—'}</span>
                     &nbsp;·&nbsp; CPU Model: <span className="text-cyan-100 font-medium">{cpuModel}</span>
@@ -470,11 +470,11 @@ export function AdminDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* CPU Card */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+              <div className="bg-black/10 rounded-xl p-4 border border-cyan-400/20 space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <Cpu className="w-4 h-4 text-cyan-400" />
-                    <span className="text-sm font-semibold text-white">CPU</span>
+                    <span className="text-sm font-semibold text-cyan-50">CPU</span>
                   </div>
                   <span className="text-xs font-bold px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-md border border-yellow-500/30">
                     Allocated: {totalAllocatedCores}
@@ -489,23 +489,23 @@ export function AdminDashboard() {
                   color="bg-cyan-500"
                 />
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <div className="bg-black/20 rounded-lg p-2 text-center border border-cyan-400/10">
                     <div className="text-lg font-bold text-yellow-400">{unallocatedCores}</div>
-                    <div className="text-[10px] text-cyan-100/60 uppercase">Unallocated</div>
+                    <div className="text-[10px] text-cyan-200/70 uppercase">Unallocated</div>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <div className="bg-black/20 rounded-lg p-2 text-center border border-cyan-400/10">
                     <div className="text-lg font-bold text-cyan-300">{totalCores}</div>
-                    <div className="text-[10px] text-cyan-100/60 uppercase">Total Cores</div>
+                    <div className="text-[10px] text-cyan-200/70 uppercase">Total Cores</div>
                   </div>
                 </div>
               </div>
 
               {/* RAM Card */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+              <div className="bg-black/10 rounded-xl p-4 border border-cyan-400/20 space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <MemoryStick className="w-4 h-4 text-blue-400" />
-                    <span className="text-sm font-semibold text-white">Memory (RAM)</span>
+                    <span className="text-sm font-semibold text-cyan-50">Memory (RAM)</span>
                   </div>
                   <span className="text-xs font-bold px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-md border border-yellow-500/30">
                     Allocated: {fmtBytes(totalAllocatedRam)}
@@ -520,23 +520,23 @@ export function AdminDashboard() {
                   color="bg-blue-500"
                 />
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <div className="bg-black/20 rounded-lg p-2 text-center border border-cyan-400/10">
                     <div className="text-lg font-bold text-yellow-400">{fmtBytes(unallocatedRam)}</div>
-                    <div className="text-[10px] text-cyan-100/60 uppercase">Unallocated</div>
+                    <div className="text-[10px] text-cyan-200/70 uppercase">Unallocated</div>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <div className="bg-black/20 rounded-lg p-2 text-center border border-cyan-400/10">
                     <div className="text-lg font-bold text-blue-300">{estimatedMaxNewVms}</div>
-                    <div className="text-[10px] text-cyan-100/60 uppercase">Free VM Slots</div>
+                    <div className="text-[10px] text-cyan-200/70 uppercase">Free VM Slots</div>
                   </div>
                 </div>
               </div>
 
               {/* Storage Card */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+              <div className="bg-black/10 rounded-xl p-4 border border-cyan-400/20 space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <HardDrive className="w-4 h-4 text-sky-400" />
-                    <span className="text-sm font-semibold text-white">Storage (Root FS)</span>
+                    <span className="text-sm font-semibold text-cyan-50">Storage (Root FS)</span>
                   </div>
                   <span className="text-xs font-bold px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-md border border-yellow-500/30">
                     Allocated: {fmtBytes(totalAllocatedDisk)}
@@ -551,13 +551,13 @@ export function AdminDashboard() {
                   color="bg-sky-500"
                 />
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <div className="bg-black/20 rounded-lg p-2 text-center border border-cyan-400/10">
                     <div className="text-lg font-bold text-yellow-400">{fmtBytes(unallocatedDisk)}</div>
-                    <div className="text-[10px] text-cyan-100/60 uppercase">Unallocated</div>
+                    <div className="text-[10px] text-cyan-200/70 uppercase">Unallocated</div>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                  <div className="bg-black/20 rounded-lg p-2 text-center border border-cyan-400/10">
                     <div className="text-lg font-bold text-sky-300">{totalDiskBytes > 0 ? ((usedDiskBytes / totalDiskBytes) * 100).toFixed(0) : 0}%</div>
-                    <div className="text-[10px] text-cyan-100/60 uppercase">Used Physical</div>
+                    <div className="text-[10px] text-cyan-200/70 uppercase">Used Physical</div>
                   </div>
                 </div>
               </div>
@@ -705,13 +705,13 @@ export function AdminDashboard() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setLogTab('tasks')}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'tasks' ? 'bg-cyan-600 text-white shadow-md shadow-cyan-500/20' : 'bg-blue-900/60 text-blue-300 hover:bg-blue-800 hover:text-white'}`}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'tasks' ? 'bg-cyan-600 text-white shadow-md shadow-cyan-500/20' : 'bg-blue-900/60 text-blue-200 hover:bg-blue-800 hover:text-white'}`}
                     >
                       <Terminal className="w-3.5 h-3.5" /> Tasks
                     </button>
                     <button
                       onClick={() => setLogTab('clusterlog')}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'clusterlog' ? 'bg-cyan-600 text-white shadow-md shadow-cyan-500/20' : 'bg-blue-900/60 text-blue-300 hover:bg-blue-800 hover:text-white'}`}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${logTab === 'clusterlog' ? 'bg-cyan-600 text-white shadow-md shadow-cyan-500/20' : 'bg-blue-900/60 text-blue-200 hover:bg-blue-800 hover:text-white'}`}
                     >
                       <FileText className="w-3.5 h-3.5" /> Cluster log
                     </button>
