@@ -8,6 +8,7 @@ import {
   ShieldCheck, Users, TrendingUp, ChevronRight, RefreshCw, CheckCircle, Copy, FileText, Terminal, Menu, X
 } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
+import UptimeWidget from '@/components/UptimeWidget';
 
 // ─── Helper Utilities ──────────────────────────────────────────────────────────
 
@@ -109,7 +110,7 @@ export function AdminDashboard() {
     document.title = "Admin Control Panel | Cloud Baja Tegal";
   }, []);
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'vms' | 'logs'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'vms' | 'logs' | 'uptime'>('orders');
   const [logTab, setLogTab] = useState<'tasks' | 'clusterlog'>('tasks');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
@@ -348,6 +349,18 @@ export function AdminDashboard() {
           >
             <FileText className="w-5 h-5" />
             <span>Cluster Logs</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('uptime'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
+              activeTab === 'uptime'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-bold'
+                : 'text-slate-300 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <Activity className="w-5 h-5" />
+            <span>Uptime Monitors</span>
           </button>
         </nav>
 
@@ -777,6 +790,18 @@ export function AdminDashboard() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* ── Tab: Uptime Monitoring ────────────────────────────────────── */}
+          {activeTab === 'uptime' && (
+            <div className="p-5">
+              <SectionHeader
+                icon={<Activity className="w-5 h-5" />}
+                title="Uptime Monitoring"
+                subtitle="Live blackbox monitoring of external endpoints and microservices with 24-hour historical latency."
+              />
+              <UptimeWidget />
             </div>
           )}
         </SectionCard>

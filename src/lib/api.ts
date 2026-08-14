@@ -32,3 +32,34 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// --- Uptime Monitoring API ---
+
+export interface MonitorTarget {
+  id: string;
+  domain: string;
+  status: string;
+  lastPing: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MonitorLog {
+  id: string;
+  monitorTargetId: string;
+  status: string;
+  latencyMs: number;
+  errorReason?: string;
+  createdAt: string;
+}
+
+export const monitorService = {
+  getMonitors: async (): Promise<MonitorTarget[]> => {
+    const res = await api.get('/monitors');
+    return res.data;
+  },
+  getMonitorLogs: async (id: string): Promise<MonitorLog[]> => {
+    const res = await api.get(`/monitors/${id}/logs`);
+    return res.data;
+  }
+};
