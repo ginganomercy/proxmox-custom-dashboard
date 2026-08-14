@@ -4,12 +4,26 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+/**
+ * Props for the CreateVMModal component.
+ */
 interface CreateVMModalProps {
+  /** Controls modal visibility */
   isOpen: boolean;
+  /** Callback fired to close the modal */
   onClose: () => void;
+  /** Callback fired upon successful VM provisioning */
   onSuccess: () => void;
 }
 
+/**
+ * Modal Component for provisioning a new Virtual Machine.
+ * Includes a multi-step form for Hardware Specification and Cloud-Init credentials.
+ * 
+ * @component
+ * @param {CreateVMModalProps} props - The component props
+ * @returns {JSX.Element | null} The rendered modal or null if closed
+ */
 export function CreateVMModal({ isOpen, onClose, onSuccess }: CreateVMModalProps) {
   const [step, setStep] = useState(1);
   const [node, setNode] = useState('azizazindani');

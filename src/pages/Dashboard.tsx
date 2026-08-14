@@ -11,7 +11,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { MetricChart } from '@/components/MetricChart';
 import { DataTable } from '@/components/DataTable';
 import { CreateVMModal } from '@/components/CreateVMModal';
-import { LogOut, Server, Activity, RefreshCw, Plus, Rocket, MonitorPlay, CheckCircle2, Loader2 } from 'lucide-react';
+import { LogOut, Server, Activity, RefreshCw, Plus, Rocket, MonitorPlay, CheckCircle2, Loader2, Moon, Sun } from 'lucide-react';
 
 // Dedicated axios instance with 5-minute timeout for VM provisioning pipeline
 // (Clone → WaitForTask → ResizeDisk → CloudInit → PowerOn can take 2-4 minutes)
@@ -25,6 +25,14 @@ longApi.interceptors.request.use((config) => {
   return config;
 });
 
+/**
+ * Main User Dashboard View.
+ * Displays user's provisioned Virtual Machines and provides basic management controls.
+ * Features auto-refresh and isolated view based on JWT role claims.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered User Dashboard.
+ */
 export function Dashboard() {
   const navigate = useNavigate();
 
@@ -34,6 +42,23 @@ export function Dashboard() {
   const [vms, setVms] = useState([]);
   const [nodeName, setNodeName] = useState<string>('Loading...');
   const [nodeStatus, setNodeStatus] = useState<any>(null);
+  
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [user, setUser] = useState<any>(null);
@@ -119,22 +144,22 @@ export function Dashboard() {
   const hasItems = vms.length > 0;
 
   return (
-    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200">
       {/* Decorative background blobs */}
-      <div className="fixed top-[-5%] right-[-5%] w-[40rem] h-[40rem] bg-blue-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
-      <div className="fixed bottom-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-indigo-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
+      <div className="fixed top-[-5%] right-[-5%] w-[40rem] h-[40rem] bg-blue-300 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
+      <div className="fixed bottom-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-indigo-300 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
 
       <div className="max-w-6xl mx-auto relative z-10 space-y-6">
         
         {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 dark:border-slate-800 shadow-sm">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg shadow-blue-500/20 bg-transparent">
               <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-800">Cloud Baja Tegal (CBT)</h1>
-              <p className="text-sm text-slate-500 font-medium">Personal Dashboard</p>
+              <h1 className="text-xl font-bold text-slate-800 dark:text-white">Cloud Baja Tegal (CBT)</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Personal Dashboard</p>
             </div>
           </div>
           
@@ -148,6 +173,13 @@ export function Dashboard() {
                 Admin Panel
               </button>
             )}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="flex items-center justify-center p-2 bg-white/60 hover:bg-white dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl transition-all border border-white dark:border-slate-700 shadow-sm"
+              aria-label="Toggle Theme"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             <button 
               onClick={fetchData}
               disabled={isLoading}

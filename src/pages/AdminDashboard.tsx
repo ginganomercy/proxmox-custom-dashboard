@@ -9,6 +9,11 @@ import {
 } from 'lucide-react';
 import { DataTable } from '@/components/DataTable';
 import UptimeWidget from '@/components/UptimeWidget';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { AdminHeader } from '@/components/admin/AdminHeader';
+import { NodeCapacityCard, StatBar, SectionCard } from '@/components/admin/NodeCapacityCard';
+import { SwarmAllocationCard } from '@/components/admin/SwarmAllocationCard';
+import { SectionHeader } from '@/components/admin/SectionHeader';
 
 // ─── Helper Utilities ──────────────────────────────────────────────────────────
 
@@ -25,81 +30,6 @@ const fmtUptime = (seconds: number) => {
   const h = Math.floor((seconds % 86400) / 3600);
   return `${d}d ${h}h`;
 };
-
-// ─── Sub-components ────────────────────────────────────────────────────────────
-
-interface StatBarProps {
-  label: string;
-  used: number;
-  total: number;
-  usedLabel: string;
-  totalLabel: string;
-  color: string;
-}
-
-function StatBar({ label, used, total, usedLabel, totalLabel, color }: StatBarProps) {
-  const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
-  const isHigh = pct > 80;
-  const isMid = pct > 60;
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex justify-between items-end">
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</span>
-        <span className={`text-xs font-bold ${isHigh ? 'text-red-400' : isMid ? 'text-amber-400' : 'text-slate-300'}`}>
-          {pct.toFixed(1)}%
-        </span>
-      </div>
-      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-700 ${isHigh ? 'bg-red-500' : isMid ? 'bg-amber-500' : color}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <div className="flex justify-between text-[11px] text-slate-500">
-        <span>Used: <span className="text-slate-300 font-medium">{usedLabel}</span></span>
-        <span>Total: <span className="text-slate-300 font-medium">{totalLabel}</span></span>
-      </div>
-    </div>
-  );
-}
-
-interface SectionHeaderProps {
-  icon: React.ReactNode;
-  title: string;
-  subtitle?: string;
-  action?: React.ReactNode;
-}
-
-function SectionHeader({ icon, title, subtitle, action }: SectionHeaderProps) {
-  return (
-    <div className="flex items-start justify-between mb-5">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
-          {icon}
-        </div>
-        <div>
-          <h2 className="text-base font-bold text-slate-800">{title}</h2>
-          {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
-        </div>
-      </div>
-      {action}
-    </div>
-  );
-}
-
-interface SectionCardProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-function SectionCard({ children, className = '' }: SectionCardProps) {
-  return (
-    <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden ${className}`}>
-      {children}
-    </div>
-  );
-}
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
@@ -324,143 +254,27 @@ export function AdminDashboard() {
           SECTION 1: Left Sidebar — Responsive Mobile Drawer
       ════════════════════════════════════════════════════════════════ */}
 
-      {/* Mobile Backdrop Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-30 lg:hidden backdrop-blur-sm"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      <aside
-        className={`fixed inset-y-0 left-0 w-72 bg-white dark:bg-slate-900 flex flex-col flex-shrink-0 border-r border-slate-200 dark:border-slate-800 shadow-xl z-40
-          transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:shadow-none
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
-      >
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3.5">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/30 bg-transparent">
-              <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
-            </div>
-            <div>
-              <h1 className="font-bold text-lg tracking-tight text-slate-900 dark:text-blue-50">Admin Control</h1>
-              <p className="text-xs text-cyan-600 dark:text-cyan-400 font-medium">Cloud Baja Tegal</p>
-            </div>
-          </div>
-          {/* Close button — visible on mobile only */}
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
-            aria-label="Close sidebar"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          <div className="px-5 pb-3">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">KLUSTER & MANAJEMEN</span>
-          </div>
-          <button
-            onClick={() => { setActiveTab('orders'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-medium text-sm
-              ${activeTab === 'orders'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-sm dark:bg-cyan-600 dark:text-white dark:border-cyan-500 dark:shadow-cyan-600/30'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'}`}
-          >
-            <Users className="w-5 h-5" />
-            <span>Personal Management</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('vms'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-medium text-sm
-              ${activeTab === 'vms'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-sm dark:bg-cyan-600 dark:text-white dark:border-cyan-500 dark:shadow-cyan-600/30'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'}`}
-          >
-            <Server className="w-5 h-5" />
-            <span>All Instances</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('logs'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-medium text-sm
-              ${activeTab === 'logs'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-sm dark:bg-cyan-600 dark:text-white dark:border-cyan-500 dark:shadow-cyan-600/30'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'}`}
-          >
-            <FileText className="w-5 h-5" />
-            <span>Cluster Logs</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('uptime'); setIsSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-medium text-sm
-              ${activeTab === 'uptime'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-sm dark:bg-cyan-600 dark:text-white dark:border-cyan-500 dark:shadow-cyan-600/30'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'}`}
-          >
-            <Activity className="w-5 h-5" />
-            <span>Uptime Monitors</span>
-          </button>
-        </nav>
-
-        {/* Bottom Actions */}
-        <div className="p-5 border-t border-slate-200 dark:border-slate-800 space-y-4">
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl mb-4 border border-slate-100 dark:border-slate-700/50">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 dark:bg-cyan-500/20 dark:text-cyan-400 flex items-center justify-center font-bold">
-                A
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-800 dark:text-white">Admin Superuser</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">admin@cloudbajategal</p>
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20 rounded-xl font-bold transition-all text-sm border border-rose-100 dark:border-rose-500/20"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        handleLogout={handleLogout}
+      />
 
       {/* ════════════════════════════════════════════════════════════════
           SECTION 2: Main Content Area
       ════════════════════════════════════════════════════════════════ */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 relative z-10 overflow-y-auto lg:ml-0">
-        {/* Sticky Top Bar */}
-        <header className="bg-white dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 sm:px-8 py-5 flex items-center justify-between sticky top-0 z-30 transition-colors duration-200">
-          <div className="flex items-center gap-3">
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors mr-1"
-              aria-label="Open sidebar menu"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800 dark:text-white">
-              {activeTab === 'orders' ? 'Personal Management' : activeTab === 'vms' ? 'Node Instances Overview' : activeTab === 'logs' ? 'System Cluster Logs' : 'API & Service Uptime'}
-            </h2>
-            <span className="text-xs px-3 py-1 bg-blue-50 text-blue-700 dark:bg-cyan-500/10 dark:text-cyan-400 rounded-full font-bold border border-blue-100 dark:border-cyan-500/20 hidden md:inline-block">
-              Cluster: {targetNode}
-            </span>
-          </div>
-          <button
-            onClick={() => { fetchGlobalData(); }}
-            disabled={isLoadingSummary}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoadingSummary ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh Status</span>
-          </button>
-        </header>
+        <AdminHeader
+          setIsSidebarOpen={setIsSidebarOpen}
+          activeTab={activeTab}
+          targetNode={targetNode}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+          fetchGlobalData={fetchGlobalData}
+          isLoadingSummary={isLoadingSummary}
+        />
 
         <div className="p-6 sm:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
@@ -488,175 +302,34 @@ export function AdminDashboard() {
         {/* ════════════════════════════════════════════════════════════════
             SECTION 3: Proxmox Node Capacity (Real Data)
         ════════════════════════════════════════════════════════════════ */}
-        <SectionCard className="!overflow-visible">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 dark:bg-slate-800 rounded-xl">
-                  <Activity className="w-5 h-5 text-blue-600 dark:text-cyan-400" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-800 dark:text-white">Live Node Capacity — <span className="text-blue-600 dark:text-cyan-400">{targetNode}</span></h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Uptime: <span className="text-slate-700 dark:text-slate-300 font-medium">{nodeStatus?.uptime ? fmtUptime(nodeStatus.uptime) : '—'}</span>
-                    &nbsp;·&nbsp; CPU Model: <span className="text-slate-700 dark:text-slate-300 font-medium">{cpuModel}</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* CPU Card */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Cpu className="w-4 h-4 text-blue-500 dark:text-cyan-400" />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">CPU</span>
-                  </div>
-                  <span className="text-xs font-bold px-2 py-1 bg-amber-50 dark:bg-yellow-500/10 text-amber-600 dark:text-yellow-500 rounded-md border border-amber-200 dark:border-yellow-500/20">
-                    Allocated: {totalAllocatedCores}
-                  </span>
-                </div>
-                <StatBar
-                  label="Core Utilization"
-                  used={cpuUsagePct}
-                  total={100}
-                  usedLabel={`${cpuUsagePct.toFixed(1)}%`}
-                  totalLabel={`${totalCores} vCores`}
-                  color="bg-blue-500 dark:bg-cyan-500"
-                />
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                    <div className="text-lg font-bold text-amber-600 dark:text-yellow-400">{unallocatedCores}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Unallocated</div>
-                  </div>
-                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                    <div className="text-lg font-bold text-slate-800 dark:text-cyan-300">{totalCores}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Total Cores</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* RAM Card */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <MemoryStick className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Memory (RAM)</span>
-                  </div>
-                  <span className="text-xs font-bold px-2 py-1 bg-amber-50 dark:bg-yellow-500/10 text-amber-600 dark:text-yellow-500 rounded-md border border-amber-200 dark:border-yellow-500/20">
-                    Allocated: {fmtBytes(totalAllocatedRam)}
-                  </span>
-                </div>
-                <StatBar
-                  label="Physical RAM Usage"
-                  used={usedRamBytes}
-                  total={totalRamBytes}
-                  usedLabel={fmtBytes(usedRamBytes)}
-                  totalLabel={fmtBytes(totalRamBytes)}
-                  color="bg-blue-600 dark:bg-blue-500"
-                />
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                    <div className="text-lg font-bold text-amber-600 dark:text-yellow-400">{fmtBytes(unallocatedRam)}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Unallocated</div>
-                  </div>
-                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                    <div className="text-lg font-bold text-slate-800 dark:text-blue-300">{estimatedMaxNewVms}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Free VM Slots</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Storage Card */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <HardDrive className="w-4 h-4 text-sky-500 dark:text-sky-400" />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Storage (Root FS)</span>
-                  </div>
-                  <span className="text-xs font-bold px-2 py-1 bg-amber-50 dark:bg-yellow-500/10 text-amber-600 dark:text-yellow-500 rounded-md border border-amber-200 dark:border-yellow-500/20">
-                    Allocated: {fmtBytes(totalAllocatedDisk)}
-                  </span>
-                </div>
-                <StatBar
-                  label="Physical Disk Usage"
-                  used={usedDiskBytes}
-                  total={totalDiskBytes}
-                  usedLabel={fmtBytes(usedDiskBytes)}
-                  totalLabel={fmtBytes(totalDiskBytes)}
-                  color="bg-sky-500"
-                />
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                    <div className="text-lg font-bold text-amber-600 dark:text-yellow-400">{fmtBytes(unallocatedDisk)}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Unallocated</div>
-                  </div>
-                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                    <div className="text-lg font-bold text-slate-800 dark:text-sky-300">{totalDiskBytes > 0 ? ((usedDiskBytes / totalDiskBytes) * 100).toFixed(0) : 0}%</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Used Physical</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </SectionCard>
+        <NodeCapacityCard
+          targetNode={targetNode}
+          nodeStatus={nodeStatus}
+          cpuModel={cpuModel}
+          totalAllocatedCores={totalAllocatedCores}
+          cpuUsagePct={cpuUsagePct}
+          totalCores={totalCores}
+          unallocatedCores={unallocatedCores}
+          totalAllocatedRam={totalAllocatedRam}
+          usedRamBytes={usedRamBytes}
+          totalRamBytes={totalRamBytes}
+          unallocatedRam={unallocatedRam}
+          estimatedMaxNewVms={estimatedMaxNewVms}
+          totalAllocatedDisk={totalAllocatedDisk}
+          usedDiskBytes={usedDiskBytes}
+          totalDiskBytes={totalDiskBytes}
+          unallocatedDisk={unallocatedDisk}
+          fmtUptime={fmtUptime}
+          fmtBytes={fmtBytes}
+        />
 
         {/* SECTION 3.5: Swarm Partitioning */}
-        <SectionCard>
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
-             <div className="flex items-center gap-3 mb-5">
-               <div className="p-2.5 bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                 <Server className="w-5 h-5" />
-               </div>
-               <div>
-                 <h2 className="text-base font-bold text-slate-800 dark:text-white">Cluster Allocation Breakdown</h2>
-                 <p className="text-xs text-slate-500 dark:text-slate-400">Resource partitioning across Docker Swarm and Generic Nodes</p>
-               </div>
-             </div>
-             
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Swarm Managers */}
-                <div className="border border-indigo-100 dark:border-slate-700 bg-indigo-50/30 dark:bg-slate-800/50 p-4 rounded-xl flex flex-col justify-between">
-                   <div className="flex items-center justify-between mb-3 border-b border-indigo-100 dark:border-slate-700 pb-2">
-                     <span className="font-bold text-indigo-900 dark:text-indigo-400 text-sm flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-500"/> Swarm Managers</span>
-                     <span className="text-xs font-bold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md">{mgrMetrics.count} VMs</span>
-                   </div>
-                   <div className="space-y-2 text-xs">
-                     <div className="flex justify-between items-center"><span className="text-slate-500 dark:text-slate-400">Allocated CPU</span><span className="font-semibold text-slate-700 dark:text-slate-200">{mgrMetrics.cpu} Cores</span></div>
-                     <div className="flex justify-between items-center"><span className="text-slate-500 dark:text-slate-400">Allocated RAM</span><span className="font-semibold text-slate-700 dark:text-slate-200">{fmtBytes(mgrMetrics.ram)}</span></div>
-                     <div className="flex justify-between items-center"><span className="text-slate-500 dark:text-slate-400">Allocated Disk</span><span className="font-semibold text-slate-700 dark:text-slate-200">{fmtBytes(mgrMetrics.disk)}</span></div>
-                   </div>
-                </div>
-
-                {/* Swarm Workers */}
-                <div className="border border-sky-100 dark:border-slate-700 bg-sky-50/30 dark:bg-slate-800/50 p-4 rounded-xl flex flex-col justify-between">
-                   <div className="flex items-center justify-between mb-3 border-b border-sky-100 dark:border-slate-700 pb-2">
-                     <span className="font-bold text-sky-900 dark:text-sky-400 text-sm flex items-center gap-2"><Cpu className="w-4 h-4 text-sky-600 dark:text-sky-500"/> Swarm Workers</span>
-                     <span className="text-xs font-bold bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded-md">{wkrMetrics.count} VMs</span>
-                   </div>
-                   <div className="space-y-2 text-xs">
-                     <div className="flex justify-between items-center"><span className="text-slate-500 dark:text-slate-400">Allocated CPU</span><span className="font-semibold text-slate-700 dark:text-slate-200">{wkrMetrics.cpu} Cores</span></div>
-                     <div className="flex justify-between items-center"><span className="text-slate-500 dark:text-slate-400">Allocated RAM</span><span className="font-semibold text-slate-700 dark:text-slate-200">{fmtBytes(wkrMetrics.ram)}</span></div>
-                     <div className="flex justify-between items-center"><span className="text-slate-500 dark:text-slate-400">Allocated Disk</span><span className="font-semibold text-slate-700 dark:text-slate-200">{fmtBytes(wkrMetrics.disk)}</span></div>
-                   </div>
-                </div>
-
-                {/* Generic Nodes */}
-                <div className="border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-xl flex flex-col justify-between">
-                   <div className="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">
-                     <span className="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2"><HardDrive className="w-4 h-4 text-slate-500 dark:text-slate-400"/> Other / Generic</span>
-                     <span className="text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">{genMetrics.count} VMs</span>
-                   </div>
-                   <div className="space-y-2 text-xs">
-                     <div className="flex justify-between items-center"><span className="text-slate-500 dark:text-slate-400">Allocated CPU</span><span className="font-semibold text-slate-700 dark:text-slate-200">{genMetrics.cpu} Cores</span></div>
-                     <div className="flex justify-between items-center"><span className="text-slate-500 dark:text-slate-400">Allocated RAM</span><span className="font-semibold text-slate-700 dark:text-slate-200">{fmtBytes(genMetrics.ram)}</span></div>
-                     <div className="flex justify-between items-center"><span className="text-slate-500 dark:text-slate-400">Allocated Disk</span><span className="font-semibold text-slate-700 dark:text-slate-200">{fmtBytes(genMetrics.disk)}</span></div>
-                   </div>
-                </div>
-             </div>
-          </div>
-        </SectionCard>
+        <SwarmAllocationCard
+          mgrMetrics={mgrMetrics}
+          wkrMetrics={wkrMetrics}
+          genMetrics={genMetrics}
+          fmtBytes={fmtBytes}
+        />
 
         {/* ════════════════════════════════════════════════════════════════
             SECTION 4: Active View Area

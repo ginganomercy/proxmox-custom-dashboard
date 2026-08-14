@@ -8,6 +8,9 @@ import InstanceManageModal from './InstanceManageModal';
 import { VMConfigModal } from './VMConfigModal';
 import { MetricsModal } from './MetricsModal';
 
+/**
+ * Represents a Proxmox Virtual Machine data structure.
+ */
 interface VM {
   vmid: number;
   name: string;
@@ -25,9 +28,17 @@ interface VM {
   diskwrite?: number;
 }
 
+/**
+ * Props for the DataTable component.
+ */
 interface DataTableProps {
+  /** Array of VM data from Proxmox */
   data: VM[];
+  /** Loading state indicator */
   isLoading?: boolean;
+  /** Active node name (e.g., 'pve') */
+  nodeName?: string;
+  /** Callback fired upon successful VM deletion */
   onDeleteSuccess?: () => void;
 }
 
