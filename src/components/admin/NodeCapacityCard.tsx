@@ -18,20 +18,20 @@ export function StatBar({ label, used, total, usedLabel, totalLabel, color }: St
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex justify-between items-end">
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</span>
-        <span className={`text-xs font-bold ${isHigh ? 'text-red-400' : isMid ? 'text-amber-400' : 'text-slate-300'}`}>
+        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{label}</span>
+        <span className={`text-xs font-extrabold ${isHigh ? 'text-red-500 dark:text-red-400' : isMid ? 'text-amber-500 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300'}`}>
           {pct.toFixed(1)}%
         </span>
       </div>
-      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+      <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
         <div
-          className={`h-full rounded-full transition-all duration-700 ${isHigh ? 'bg-red-500' : isMid ? 'bg-amber-500' : color}`}
+          className={`h-full rounded-full transition-all duration-700 ${isHigh ? 'bg-gradient-to-r from-red-500 to-rose-600 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : isMid ? 'bg-gradient-to-r from-amber-400 to-orange-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : color}`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="flex justify-between text-[11px] text-slate-500">
-        <span>Used: <span className="text-slate-300 font-medium">{usedLabel}</span></span>
-        <span>Total: <span className="text-slate-300 font-medium">{totalLabel}</span></span>
+      <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
+        <span>Used: <span className="text-slate-700 dark:text-slate-200 font-bold">{usedLabel}</span></span>
+        <span>Total: <span className="text-slate-700 dark:text-slate-200 font-bold">{totalLabel}</span></span>
       </div>
     </div>
   );
@@ -99,7 +99,7 @@ export function NodeCapacityCard({
                 <Cpu className="w-4 h-4 text-blue-500 dark:text-cyan-400" />
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">CPU</span>
               </div>
-              <span className="text-xs font-bold px-2 py-1 bg-amber-50 dark:bg-yellow-500/10 text-amber-600 dark:text-yellow-500 rounded-md border border-amber-200 dark:border-yellow-500/20">
+              <span className="text-xs font-bold px-2.5 py-1 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-yellow-500/20 dark:to-amber-500/10 text-amber-700 dark:text-yellow-400 rounded-lg border border-amber-200/50 dark:border-yellow-500/20 shadow-sm">
                 Allocated: {totalAllocatedCores}
               </span>
             </div>
@@ -109,16 +109,16 @@ export function NodeCapacityCard({
               total={100}
               usedLabel={`${cpuUsagePct.toFixed(1)}%`}
               totalLabel={`${totalCores} vCores`}
-              color="bg-blue-500 dark:bg-cyan-500"
+              color="bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_10px_rgba(6,182,212,0.4)]"
             />
             <div className="grid grid-cols-2 gap-2 pt-1">
-              <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                <div className="text-lg font-bold text-amber-600 dark:text-yellow-400">{unallocatedCores}</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Unallocated</div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-2.5 text-center border border-slate-100 dark:border-slate-700 shadow-sm transition-transform hover:-translate-y-0.5">
+                <div className="text-lg font-black text-amber-600 dark:text-yellow-400">{unallocatedCores}</div>
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Unallocated</div>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                <div className="text-lg font-bold text-slate-800 dark:text-cyan-300">{totalCores}</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Total Cores</div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-2.5 text-center border border-slate-100 dark:border-slate-700 shadow-sm transition-transform hover:-translate-y-0.5">
+                <div className="text-lg font-black text-slate-800 dark:text-cyan-400">{totalCores}</div>
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Total Cores</div>
               </div>
             </div>
           </div>
@@ -130,7 +130,7 @@ export function NodeCapacityCard({
                 <MemoryStick className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Memory (RAM)</span>
               </div>
-              <span className="text-xs font-bold px-2 py-1 bg-amber-50 dark:bg-yellow-500/10 text-amber-600 dark:text-yellow-500 rounded-md border border-amber-200 dark:border-yellow-500/20">
+              <span className="text-xs font-bold px-2.5 py-1 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-yellow-500/20 dark:to-amber-500/10 text-amber-700 dark:text-yellow-400 rounded-lg border border-amber-200/50 dark:border-yellow-500/20 shadow-sm">
                 Allocated: {fmtBytes(totalAllocatedRam)}
               </span>
             </div>
@@ -140,16 +140,16 @@ export function NodeCapacityCard({
               total={totalRamBytes}
               usedLabel={fmtBytes(usedRamBytes)}
               totalLabel={fmtBytes(totalRamBytes)}
-              color="bg-blue-600 dark:bg-blue-500"
+              color="bg-gradient-to-r from-blue-500 to-indigo-500 shadow-[0_0_10px_rgba(59,130,246,0.4)]"
             />
             <div className="grid grid-cols-2 gap-2 pt-1">
-              <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                <div className="text-lg font-bold text-amber-600 dark:text-yellow-400">{fmtBytes(unallocatedRam)}</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Unallocated</div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-2.5 text-center border border-slate-100 dark:border-slate-700 shadow-sm transition-transform hover:-translate-y-0.5">
+                <div className="text-lg font-black text-amber-600 dark:text-yellow-400">{fmtBytes(unallocatedRam)}</div>
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Unallocated</div>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                <div className="text-lg font-bold text-slate-800 dark:text-blue-300">{estimatedMaxNewVms}</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Free VM Slots</div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-2.5 text-center border border-slate-100 dark:border-slate-700 shadow-sm transition-transform hover:-translate-y-0.5">
+                <div className="text-lg font-black text-slate-800 dark:text-blue-400">{estimatedMaxNewVms}</div>
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Free VM Slots</div>
               </div>
             </div>
           </div>
@@ -161,7 +161,7 @@ export function NodeCapacityCard({
                 <HardDrive className="w-4 h-4 text-sky-500 dark:text-sky-400" />
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Storage (Root FS)</span>
               </div>
-              <span className="text-xs font-bold px-2 py-1 bg-amber-50 dark:bg-yellow-500/10 text-amber-600 dark:text-yellow-500 rounded-md border border-amber-200 dark:border-yellow-500/20">
+              <span className="text-xs font-bold px-2.5 py-1 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-yellow-500/20 dark:to-amber-500/10 text-amber-700 dark:text-yellow-400 rounded-lg border border-amber-200/50 dark:border-yellow-500/20 shadow-sm">
                 Allocated: {fmtBytes(totalAllocatedDisk)}
               </span>
             </div>
@@ -171,16 +171,16 @@ export function NodeCapacityCard({
               total={totalDiskBytes}
               usedLabel={fmtBytes(usedDiskBytes)}
               totalLabel={fmtBytes(totalDiskBytes)}
-              color="bg-sky-500"
+              color="bg-gradient-to-r from-sky-400 to-cyan-500 shadow-[0_0_10px_rgba(56,189,248,0.4)]"
             />
             <div className="grid grid-cols-2 gap-2 pt-1">
-              <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                <div className="text-lg font-bold text-amber-600 dark:text-yellow-400">{fmtBytes(unallocatedDisk)}</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Unallocated</div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-2.5 text-center border border-slate-100 dark:border-slate-700 shadow-sm transition-transform hover:-translate-y-0.5">
+                <div className="text-lg font-black text-amber-600 dark:text-yellow-400">{fmtBytes(unallocatedDisk)}</div>
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Unallocated</div>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-lg p-2 text-center border border-slate-100 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-                <div className="text-lg font-bold text-slate-800 dark:text-sky-300">{totalDiskBytes > 0 ? ((usedDiskBytes / totalDiskBytes) * 100).toFixed(0) : 0}%</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Used Physical</div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-2.5 text-center border border-slate-100 dark:border-slate-700 shadow-sm transition-transform hover:-translate-y-0.5">
+                <div className="text-lg font-black text-slate-800 dark:text-sky-400">{totalDiskBytes > 0 ? ((usedDiskBytes / totalDiskBytes) * 100).toFixed(0) : 0}%</div>
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Used Physical</div>
               </div>
             </div>
           </div>

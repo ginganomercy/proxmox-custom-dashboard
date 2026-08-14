@@ -61,8 +61,8 @@ export function AdminSidebar({
             onClick={() => { setActiveTab('orders'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-medium text-sm
               ${activeTab === 'orders'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-sm dark:bg-cyan-600 dark:text-white dark:border-cyan-500 dark:shadow-cyan-600/30'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'}`}
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/20 border border-transparent'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white border border-transparent'}`}
           >
             <Users className="w-5 h-5" />
             <span>Personal Management</span>
@@ -72,8 +72,8 @@ export function AdminSidebar({
             onClick={() => { setActiveTab('vms'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-medium text-sm
               ${activeTab === 'vms'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-sm dark:bg-cyan-600 dark:text-white dark:border-cyan-500 dark:shadow-cyan-600/30'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'}`}
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/20 border border-transparent'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white border border-transparent'}`}
           >
             <Server className="w-5 h-5" />
             <span>All Instances</span>
@@ -83,8 +83,8 @@ export function AdminSidebar({
             onClick={() => { setActiveTab('logs'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-medium text-sm
               ${activeTab === 'logs'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-sm dark:bg-cyan-600 dark:text-white dark:border-cyan-500 dark:shadow-cyan-600/30'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'}`}
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/20 border border-transparent'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white border border-transparent'}`}
           >
             <FileText className="w-5 h-5" />
             <span>Cluster Logs</span>
@@ -94,8 +94,8 @@ export function AdminSidebar({
             onClick={() => { setActiveTab('uptime'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 font-medium text-sm
               ${activeTab === 'uptime'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100 shadow-sm dark:bg-cyan-600 dark:text-white dark:border-cyan-500 dark:shadow-cyan-600/30'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'}`}
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/20 border border-transparent'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white border border-transparent'}`}
           >
             <Activity className="w-5 h-5" />
             <span>Uptime Monitors</span>
