@@ -76,11 +76,11 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
   }
   const [rates, setRates] = useState<Record<number, VMRates>>({});
   const prevDataRef = useRef<Record<number, VM>>({});
-  const lastUpdateRef = useRef<number>(Date.now());
+  const lastUpdateRef = useRef<number>(0);
 
   useEffect(() => {
     const now = Date.now();
-    const elapsedSeconds = (now - lastUpdateRef.current) / 1000;
+    const elapsedSeconds = lastUpdateRef.current === 0 ? 0 : (now - lastUpdateRef.current) / 1000;
     
     // Only calculate if interval is reasonable (e.g. not the first render, and not after sleep)
     if (elapsedSeconds > 0 && elapsedSeconds < 300) {
