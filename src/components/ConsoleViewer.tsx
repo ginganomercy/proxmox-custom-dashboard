@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import RFB from '@novnc/novnc';
 import Cookies from 'js-cookie';
+import { cn } from '@/lib/utils';
 import {
   Keyboard,
   Clipboard,
@@ -46,6 +47,8 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   const [showClipboard, setShowClipboard] = useState(false);
   const [isScaled, setIsScaled] = useState(true);
   const [viewOnly, setViewOnly] = useState(false);
+  const [ctrlActive, setCtrlActive] = useState(false);
+  const [altActive, setAltActive] = useState(false);
 
   const [reconnectTrigger, setReconnectTrigger] = useState(0);
 
@@ -155,6 +158,25 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   // ─────────────────────────────────────────────────────────────────────────
   // Toolbar actions
   // ─────────────────────────────────────────────────────────────────────────
+
+  const sendKeySym = useCallback((keysym: number) => {
+    if (!rfbRef.current) return;
+    
+    if (ctrlActive) rfbRef.current.sendKey(0xFFE3, true); // Ctrl Left
+    if (altActive) rfbRef.current.sendKey(0xFFE9, true);  // Alt Left
+    
+    rfbRef.current.sendKey(keysym, true);
+    rfbRef.current.sendKey(keysym, false);
+    
+    if (ctrlActive) {
+      rfbRef.current.sendKey(0xFFE3, false);
+      setCtrlActive(false);
+    }
+    if (altActive) {
+      rfbRef.current.sendKey(0xFFE9, false);
+      setAltActive(false);
+    }
+  }, [ctrlActive, altActive]);
 
   /** Send Ctrl+Alt+Delete to the remote VM */
   const sendCtrlAltDel = useCallback(() => {
@@ -375,6 +397,64 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
             </button>
           </>
         )}
+      </div>
+
+      {/* ── Termux-style Extra Keys (Mobile Only) ─────────────────────────── */}
+      <div className="flex sm:hidden items-center gap-1.5 px-2 py-1.5 bg-[#151a25] border-b border-slate-800 overflow-x-auto whitespace-nowrap" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <button
+          onClick={() => sendKeySym(0xFF1B)}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded text-xs font-mono text-slate-300 transition-colors flex-shrink-0"
+        >
+          ESC
+        </button>
+        <button
+          onClick={() => sendKeySym(0xFF09)}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded text-xs font-mono text-slate-300 transition-colors flex-shrink-0"
+        >
+          TAB
+        </button>
+        <button
+          onClick={() => setCtrlActive(!ctrlActive)}
+          className={cn("px-2.5 py-1 rounded text-xs font-mono transition-colors flex-shrink-0", ctrlActive ? "bg-blue-600 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-300")}
+        >
+          CTRL
+        </button>
+        <button
+          onClick={() => setAltActive(!altActive)}
+          className={cn("px-2.5 py-1 rounded text-xs font-mono transition-colors flex-shrink-0", altActive ? "bg-blue-600 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-300")}
+        >
+          ALT
+        </button>
+        <button
+          onClick={() => sendKeySym(0xFF52)}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded text-xs font-mono text-slate-300 transition-colors flex-shrink-0"
+        >
+          ↑
+        </button>
+        <button
+          onClick={() => sendKeySym(0xFF54)}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded text-xs font-mono text-slate-300 transition-colors flex-shrink-0"
+        >
+          ↓
+        </button>
+        <button
+          onClick={() => sendKeySym(0xFF51)}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded text-xs font-mono text-slate-300 transition-colors flex-shrink-0"
+        >
+          ←
+        </button>
+        <button
+          onClick={() => sendKeySym(0xFF53)}
+          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded text-xs font-mono text-slate-300 transition-colors flex-shrink-0"
+        >
+          →
+        </button>
+        <button
+          onClick={() => sendKeySym(0xFF0D)}
+          className="px-3 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded text-xs font-mono text-slate-300 font-bold transition-colors flex-shrink-0"
+        >
+          ENTER
+        </button>
       </div>
 
       {/* ── Canvas area ──────────────────────────────────────────────────────

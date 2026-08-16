@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Play, Square, HardDrive, Terminal, X, Power, PowerOff, Settings, Maximize2 } from 'lucide-react';
+import { Play, Square, HardDrive, Terminal, X, Power, PowerOff, Settings, Maximize2, MoreVertical, Activity } from 'lucide-react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import * as Tooltip from '@radix-ui/react-tooltip';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ConsoleViewer } from './ConsoleViewer';
 import InstanceManageModal from './InstanceManageModal';
@@ -169,6 +172,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
   }
 
   return (
+    <Tooltip.Provider>
     <div className="w-full overflow-x-auto">
       <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead>
@@ -233,30 +237,55 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <div className="w-20 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner dark:shadow-black/20">
-                      <div 
-                        className={cn("h-full rounded-full transition-all", vm.status === 'running' ? "bg-blue-400 dark:bg-blue-500" : "bg-slate-300 dark:bg-slate-700")}
-                        style={{ width: `${Math.min(100, ((vm.mem || 0) / (vm.maxmem || 1)) * 100)}%` }}
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, ((vm.mem || 0) / (vm.maxmem || 1)) * 100)}%` }}
+                        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                        className={cn("h-full rounded-full", vm.status === 'running' ? "bg-blue-400 dark:bg-blue-500" : "bg-slate-300 dark:bg-slate-700")}
                       />
                     </div>
                   </div>
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                    {formatBytes(vm.mem)} / {formatBytes(vm.maxmem)}
-                  </span>
+                  
+                  <Tooltip.Root delayDuration={200}>
+                    <Tooltip.Trigger asChild>
+                      <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 cursor-help border-b border-dashed border-slate-400 dark:border-slate-600 w-max">
+                        {formatBytes(vm.mem)} / {formatBytes(vm.maxmem)}
+                      </span>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content className="bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl z-50" sideOffset={5}>
+                        Memory Load: {vm.maxmem ? ((vm.mem / vm.maxmem) * 100).toFixed(1) : 0}%
+                        <Tooltip.Arrow className="fill-slate-800" />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
                 </div>
               </td>
               <td className="py-4 px-2 text-slate-600 dark:text-slate-300">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <div className="w-20 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner dark:shadow-black/20">
-                      <div 
-                        className={cn("h-full rounded-full transition-all", vm.status === 'running' ? "bg-amber-400 dark:bg-amber-500" : "bg-slate-300 dark:bg-slate-700")}
-                        style={{ width: `${Math.min(100, ((vm.disk || 0) / (vm.maxdisk || 1)) * 100)}%` }}
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, ((vm.disk || 0) / (vm.maxdisk || 1)) * 100)}%` }}
+                        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                        className={cn("h-full rounded-full", vm.status === 'running' ? "bg-amber-400 dark:bg-amber-500" : "bg-slate-300 dark:bg-slate-700")}
                       />
                     </div>
                   </div>
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                    {vm.disk ? `${formatBytes(vm.disk)} / ${formatBytes(vm.maxdisk || 0)}` : `Allocated: ${formatBytes(vm.maxdisk || 0)}`}
-                  </span>
+                  <Tooltip.Root delayDuration={200}>
+                    <Tooltip.Trigger asChild>
+                      <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 cursor-help border-b border-dashed border-slate-400 dark:border-slate-600 w-max">
+                        {vm.disk ? `${formatBytes(vm.disk)} / ${formatBytes(vm.maxdisk || 0)}` : `Allocated: ${formatBytes(vm.maxdisk || 0)}`}
+                      </span>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content className="bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl z-50" sideOffset={5}>
+                        Disk Usage: {vm.maxdisk ? (((vm.disk || 0) / vm.maxdisk) * 100).toFixed(1) : 0}%
+                        <Tooltip.Arrow className="fill-slate-800" />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
                 </div>
               </td>
               <td className="py-4 px-2 text-slate-600 dark:text-slate-300">
@@ -286,59 +315,93 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                 </div>
               </td>
               <td className="py-4 px-2 text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => handlePowerAction(vm, 'start')}
-                    disabled={vm.status === 'running' || isProcessing === vm.vmid}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 border border-green-200 dark:border-green-800/50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    title="Start VM"
-                  >
-                    <Power className="w-3.5 h-3.5" />
-                    Start
-                  </button>
-                  <button
-                    onClick={() => handlePowerAction(vm, 'shutdown')}
-                    disabled={vm.status !== 'running' || isProcessing === vm.vmid}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 border border-orange-200 dark:border-orange-800/50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    title="Graceful Shutdown"
-                  >
-                    <PowerOff className="w-3.5 h-3.5" />
-                    Shutdown
-                  </button>
-                  <button
-                    onClick={() => setActiveConsole(vm)}
-                    disabled={vm.status !== 'running'}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    title="Open Web Console"
-                  >
-                    <Terminal className="w-3.5 h-3.5 text-blue-500" />
-                    Console
-                  </button>
-                  <button
-                    onClick={() => setActiveMetrics(vm)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800/50 rounded-lg transition-all"
-                    title="View Performance Metrics"
-                  >
-                    <svg className="w-3.5 h-3.5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                    Metrics
-                  </button>
-                  <button
-                    onClick={() => setActiveConfig(vm)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/50 rounded-lg transition-all"
-                    title="Hardware & Cloud-Init"
-                  >
-                    <Settings className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                    Config
-                  </button>
-                  <button
-                    onClick={() => setActiveManage(vm)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800/50 rounded-lg transition-all"
-                    title="Manage VPS Settings"
-                  >
-                    <Settings className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                    Manage
-                  </button>
-                </div>
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger asChild>
+                    <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors">
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+                  </DropdownMenu.Trigger>
+                  
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content 
+                      className="min-w-[180px] bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-1.5 flex flex-col gap-1 z-50 origin-top-right"
+                      sideOffset={5}
+                      align="end"
+                      asChild
+                    >
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                      >
+                        {/* Start */}
+                        <DropdownMenu.Item asChild>
+                          <button
+                            onClick={() => handlePowerAction(vm, 'start')}
+                            disabled={vm.status === 'running' || isProcessing === vm.vmid}
+                            className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors cursor-pointer outline-none disabled:opacity-40 disabled:cursor-not-allowed w-full"
+                          >
+                            <Power className="w-4 h-4" /> Start
+                          </button>
+                        </DropdownMenu.Item>
+                        
+                        {/* Shutdown */}
+                        <DropdownMenu.Item asChild>
+                          <button
+                            onClick={() => handlePowerAction(vm, 'shutdown')}
+                            disabled={vm.status !== 'running' || isProcessing === vm.vmid}
+                            className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-orange-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors cursor-pointer outline-none disabled:opacity-40 disabled:cursor-not-allowed w-full"
+                          >
+                            <PowerOff className="w-4 h-4" /> Shutdown
+                          </button>
+                        </DropdownMenu.Item>
+
+                        <DropdownMenu.Separator className="h-px bg-slate-200 dark:bg-slate-800 my-1 mx-2" />
+
+                        {/* Console */}
+                        <DropdownMenu.Item asChild>
+                          <button
+                            onClick={() => setActiveConsole(vm)}
+                            disabled={vm.status !== 'running'}
+                            className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer outline-none disabled:opacity-40 disabled:cursor-not-allowed w-full"
+                          >
+                            <Terminal className="w-4 h-4 text-blue-500" /> Console
+                          </button>
+                        </DropdownMenu.Item>
+
+                        {/* Metrics */}
+                        <DropdownMenu.Item asChild>
+                          <button
+                            onClick={() => setActiveMetrics(vm)}
+                            className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg transition-colors cursor-pointer outline-none w-full"
+                          >
+                            <Activity className="w-4 h-4 text-teal-600" /> Metrics
+                          </button>
+                        </DropdownMenu.Item>
+
+                        {/* Config */}
+                        <DropdownMenu.Item asChild>
+                          <button
+                            onClick={() => setActiveConfig(vm)}
+                            className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors cursor-pointer outline-none w-full"
+                          >
+                            <Settings className="w-4 h-4 text-purple-600 dark:text-purple-400" /> Config
+                          </button>
+                        </DropdownMenu.Item>
+
+                        {/* Manage */}
+                        <DropdownMenu.Item asChild>
+                          <button
+                            onClick={() => setActiveManage(vm)}
+                            className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors cursor-pointer outline-none w-full"
+                          >
+                            <Settings className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Manage
+                          </button>
+                        </DropdownMenu.Item>
+                      </motion.div>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
               </td>
             </tr>
           ))}

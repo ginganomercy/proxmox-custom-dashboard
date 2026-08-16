@@ -12,6 +12,20 @@ import { MetricChart } from '@/components/MetricChart';
 import { DataTable } from '@/components/DataTable';
 import { CreateVMModal } from '@/components/CreateVMModal';
 import { LogOut, Server, Activity, RefreshCw, Plus, Rocket, MonitorPlay, CheckCircle2, Loader2, Moon, Sun } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
 
 // Dedicated axios instance with 5-minute timeout for VM provisioning pipeline
 // (Clone → WaitForTask → ResizeDisk → CloudInit → PowerOn can take 2-4 minutes)
@@ -149,10 +163,15 @@ export function Dashboard() {
       <div className="fixed top-[-5%] right-[-5%] w-[40rem] h-[40rem] bg-blue-300 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
       <div className="fixed bottom-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-indigo-300 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
 
-      <div className="w-full relative z-10 space-y-6">
+      <motion.div 
+        variants={containerVariants} 
+        initial="hidden" 
+        animate="show" 
+        className="w-full relative z-10 space-y-6"
+      >
         
         {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 dark:border-slate-800 shadow-sm">
+        <motion.header variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 dark:border-slate-800 shadow-sm">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg shadow-blue-500/20 bg-transparent">
               <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
@@ -196,7 +215,7 @@ export function Dashboard() {
               Logout
             </button>
           </div>
-        </header>
+        </motion.header>
 
         {error && hasItems && (
           <div className="p-4 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-sm font-medium shadow-sm">
@@ -205,17 +224,17 @@ export function Dashboard() {
         )}
 
         {successMsg && (
-          <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-sm font-semibold shadow-sm animate-in fade-in duration-300">
+          <motion.div variants={itemVariants} className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-sm font-semibold shadow-sm animate-in fade-in duration-300">
             <div className="p-1 bg-emerald-500 text-white rounded-lg shadow-sm">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <span>{successMsg}</span>
-          </div>
+          </motion.div>
         )}
 
         {/* Onboarding Hero Section */}
         {!hasItems && !isLoading && user?.role === 'ADMIN' && (
-          <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
+          <motion.div variants={itemVariants} className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400 opacity-10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
             
@@ -234,11 +253,11 @@ export function Dashboard() {
                 <Rocket className="w-6 h-6 text-indigo-600" /> Pesan VM Baru
               </button>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {!hasItems && !isLoading && user?.role !== 'ADMIN' && (
-          <div className="bg-white rounded-3xl p-8 md:p-12 text-slate-800 shadow-sm border border-slate-100 text-center relative overflow-hidden">
+          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-8 md:p-12 text-slate-800 shadow-sm border border-slate-100 text-center relative overflow-hidden">
             <div className="relative z-10 max-w-xl mx-auto">
               <MonitorPlay className="w-16 h-16 text-indigo-200 mx-auto mb-6" />
               <h1 className="text-2xl font-bold tracking-tight mb-3">
@@ -248,13 +267,14 @@ export function Dashboard() {
                 Anda belum memiliki Virtual Machine (VM) yang terhubung ke akun ini. Jika Anda membutuhkan akses ke server, silakan hubungi Administrator.
               </p>
             </div>
-          </div>
+          </motion.div>
         )}
 
 
         {/* Data Table */}
         {hasItems && (
-          <GlassCard>
+          <motion.div variants={itemVariants}>
+            <GlassCard>
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-semibold text-lg text-slate-700 dark:text-slate-200 transition-colors">Virtual Machines & LXC</h2>
               {user?.role === 'ADMIN' && (
@@ -275,10 +295,11 @@ export function Dashboard() {
                 fetchData(false);
               }} 
             />
-          </GlassCard>
+            </GlassCard>
+          </motion.div>
         )}
 
-      </div>
+      </motion.div>
 
       <CreateVMModal
         isOpen={isCreateModalOpen}
