@@ -193,7 +193,9 @@ export function AdminDashboard() {
   const handleLogout = async () => { 
     try {
       await api.post('/auth/logout');
-    } catch(e) {}
+    } catch (e) {
+      console.error('Logout failed:', e);
+    }
     navigate('/login'); 
   };
   // ── Derived Proxmox Capacity Metrics ─────────────────────────────────────────

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import RFB from '@novnc/novnc';
-import Cookies from 'js-cookie';
 import { cn } from '@/lib/utils';
 import {
   Keyboard,
@@ -62,19 +61,23 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const token = Cookies.get('token');
-    if (!token) {
-      setStatus('disconnected');
-      setErrorMsg('No authentication token found. Please log in.');
-      return;
-    }
-
     let isMounted = true;
 
     const connectVnc = async () => {
       try {
         setStatus('connecting');
         const { default: api } = await import('@/lib/api');
+        
+        // Fetch a temporary JWT token purely for the WebSocket handshake
+        // (because the main token is locked inside an HttpOnly cookie and invisible to JS)
+        let token = '';
+        try {
+          const tokenRes = await api.get('/auth/vnc-token');
+          token = tokenRes.data.token;
+        } catch (e: any) {
+          throw new Error('No authentication token found or session expired. Please log in again.', { cause: e });
+        }
+
         const res = await api.post(`/proxmox/nodes/${node}/${type}/${vmid}/vncproxy`);
         const { port, ticket, password } = res.data;
 

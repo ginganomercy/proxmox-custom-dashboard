@@ -137,7 +137,9 @@ export function Dashboard() {
   const handleLogout = async () => {
     try {
       await api.post('/auth/logout');
-    } catch(e) {}
+    } catch (e) {
+      console.error('Logout failed:', e);
+    }
     navigate('/login');
   };
 
