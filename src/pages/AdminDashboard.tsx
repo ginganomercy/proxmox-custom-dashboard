@@ -288,14 +288,14 @@ export function AdminDashboard() {
             { label: 'Unallocated VM Slots', value: estimatedMaxNewVms, sub: 'est. new VMs can fit', icon: <TrendingUp className="w-5 h-5" />, color: 'from-cyan-500 to-blue-600' },
             { label: 'Master Node CPU', value: `${cpuUsagePct.toFixed(1)}%`, sub: `of ${totalCores} vCores`, icon: <Cpu className="w-5 h-5" />, color: 'from-blue-500 to-indigo-600' },
           ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+            <div key={stat.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-colors">
               <div className={`p-2.5 bg-gradient-to-br ${stat.color} text-white rounded-xl shadow-lg flex-shrink-0`}>
                 {stat.icon}
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-800">{isLoadingSummary ? '—' : stat.value}</div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">{stat.label}</div>
-                <div className="text-[11px] text-slate-400 mt-0.5">{stat.sub}</div>
+                <div className="text-2xl font-bold text-slate-800 dark:text-white">{isLoadingSummary ? '—' : stat.value}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{stat.label}</div>
+                <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{stat.sub}</div>
               </div>
             </div>
           ))}
