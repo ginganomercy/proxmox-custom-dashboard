@@ -223,27 +223,27 @@ export default function InstanceManageModal({ vm, nodeName, onClose, onDeleteSuc
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-      <div className="w-full max-w-3xl bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200 transition-colors">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-blue-50/50 to-white">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-blue-50/50 to-white dark:from-slate-800/50 dark:to-slate-900 transition-colors">
           <div>
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">VPS Control Panel</span>
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 mt-0.5">
+            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">VPS Control Panel</span>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mt-0.5 transition-colors">
               <Cpu className="w-5 h-5 text-blue-500" />
               Manage: {vm.name}
             </h2>
           </div>
           <button 
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Headers */}
-        <div className="flex border-b border-slate-100 px-6 bg-slate-50/50">
+        <div className="flex border-b border-slate-100 dark:border-slate-800 px-6 bg-slate-50/50 dark:bg-slate-900/50 transition-colors overflow-x-auto">
           <button
             onClick={() => setActiveTab('network')}
             className={cn(

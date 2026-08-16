@@ -39,7 +39,7 @@ export function StatBar({ label, used, total, usedLabel, totalLabel, color }: St
 
 export function SectionCard({ children, className = '' }: { children: React.ReactNode, className?: string }) {
   return (
-    <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden ${className}`}>
+    <div className={`bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors ${className}`}>
       {children}
     </div>
   );
