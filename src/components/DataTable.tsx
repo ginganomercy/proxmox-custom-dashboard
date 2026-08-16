@@ -61,9 +61,9 @@ function IPBadge({ nodeName, vm }: { nodeName: string, vm: VM }) {
   return (
     <div className="flex items-center mt-1">
       {ip ? (
-        <span className="text-[10px] text-slate-500 font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{ip}</span>
+        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">{ip}</span>
       ) : (
-        <button onClick={fetchIp} disabled={loading || vm.status !== 'running'} className="text-[10px] text-blue-500 hover:text-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <button onClick={fetchIp} disabled={loading || vm.status !== 'running'} className="text-[10px] text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           {loading ? 'Fetching...' : 'Reveal IP'}
         </button>
       )}
@@ -161,26 +161,26 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-400 font-medium">Loading instances...</div>;
+    return <div className="p-8 text-center text-slate-400 dark:text-slate-500 font-medium">Loading instances...</div>;
   }
 
   if (!data || data.length === 0) {
-    return <div className="p-8 text-center text-slate-400 font-medium">No instances found.</div>;
+    return <div className="p-8 text-center text-slate-400 dark:text-slate-500 font-medium">No instances found.</div>;
   }
 
   return (
     <div className="w-full overflow-x-auto">
       <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead>
-          <tr className="border-b border-slate-200/50">
-            <th className="py-4 px-2 font-semibold text-slate-500 text-sm">ID</th>
-            <th className="py-4 px-2 font-semibold text-slate-500 text-sm">Name</th>
-            <th className="py-4 px-2 font-semibold text-slate-500 text-sm">Status</th>
-            <th className="py-4 px-2 font-semibold text-slate-500 text-sm">CPU</th>
-            <th className="py-4 px-2 font-semibold text-slate-500 text-sm">Memory</th>
-            <th className="py-4 px-2 font-semibold text-slate-500 text-sm">Disk Usage</th>
-            <th className="py-4 px-2 font-semibold text-slate-500 text-sm">Network & I/O</th>
-            <th className="py-4 px-2 font-semibold text-slate-500 text-sm text-right">Actions</th>
+          <tr className="border-b border-slate-200/50 dark:border-slate-700/50">
+            <th className="py-4 px-2 font-semibold text-slate-500 dark:text-slate-400 text-sm">ID</th>
+            <th className="py-4 px-2 font-semibold text-slate-500 dark:text-slate-400 text-sm">Name</th>
+            <th className="py-4 px-2 font-semibold text-slate-500 dark:text-slate-400 text-sm">Status</th>
+            <th className="py-4 px-2 font-semibold text-slate-500 dark:text-slate-400 text-sm">CPU</th>
+            <th className="py-4 px-2 font-semibold text-slate-500 dark:text-slate-400 text-sm">Memory</th>
+            <th className="py-4 px-2 font-semibold text-slate-500 dark:text-slate-400 text-sm">Disk Usage</th>
+            <th className="py-4 px-2 font-semibold text-slate-500 dark:text-slate-400 text-sm">Network & I/O</th>
+            <th className="py-4 px-2 font-semibold text-slate-500 dark:text-slate-400 text-sm text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -188,17 +188,17 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
             <tr 
               key={vm.vmid} 
               className={cn(
-                "transition-colors hover:bg-slate-50/50",
-                index !== data.length - 1 ? "border-b border-slate-100" : ""
+                "transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/50",
+                index !== data.length - 1 ? "border-b border-slate-100 dark:border-slate-800" : ""
               )}
             >
-              <td className="py-4 px-2 text-slate-600 font-medium">#{vm.vmid}</td>
-              <td className="py-4 px-2 text-slate-800 font-medium">
+              <td className="py-4 px-2 text-slate-600 dark:text-slate-300 font-medium">#{vm.vmid}</td>
+              <td className="py-4 px-2 text-slate-800 dark:text-slate-100 font-medium">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <span className={cn(
                       "text-[10px] font-bold px-1.5 py-0.5 rounded",
-                      vm.type === 'lxc' ? "bg-purple-100 text-purple-700 border border-purple-200" : "bg-blue-100 text-blue-700 border border-blue-200"
+                      vm.type === 'lxc' ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800" : "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
                     )}>
                       {vm.type ? vm.type.toUpperCase() : 'VM'}
                     </span>
@@ -211,77 +211,77 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
               <td className="py-4 px-2">
                 <div className="flex flex-col items-start gap-1">
                   <span className={cn(
-                    "pill inline-flex items-center gap-1.5 shadow-sm",
+                    "pill inline-flex items-center gap-1.5 shadow-sm border",
                     vm.status === 'running' 
-                      ? "bg-blue-50 text-blue-700 shadow-blue-200/50" 
-                      : "bg-red-50 text-red-700 shadow-red-200/50"
+                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-blue-200/50 dark:shadow-blue-900/20 border-blue-100 dark:border-blue-800/50" 
+                      : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 shadow-red-200/50 dark:shadow-red-900/20 border-red-100 dark:border-red-800/50"
                   )}>
                     {vm.status === 'running' ? <Play className="w-3 h-3 fill-current" /> : <Square className="w-3 h-3 fill-current" />}
                     {vm.status}
                   </span>
                   {vm.status === 'running' && vm.uptime && (
-                    <span className="text-[10px] font-medium text-slate-500 whitespace-nowrap">
+                    <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
                       Up: {formatUptime(vm.uptime)}
                     </span>
                   )}
                 </div>
               </td>
-              <td className="py-4 px-2 text-slate-600 font-medium">
+              <td className="py-4 px-2 text-slate-600 dark:text-slate-300 font-medium">
                 {((vm.cpu || 0) * 100).toFixed(1)}%
               </td>
-              <td className="py-4 px-2 text-slate-600">
+              <td className="py-4 px-2 text-slate-600 dark:text-slate-300">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="w-20 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner dark:shadow-black/20">
                       <div 
-                        className={cn("h-full rounded-full transition-all", vm.status === 'running' ? "bg-blue-400" : "bg-slate-300")}
+                        className={cn("h-full rounded-full transition-all", vm.status === 'running' ? "bg-blue-400 dark:bg-blue-500" : "bg-slate-300 dark:bg-slate-700")}
                         style={{ width: `${Math.min(100, ((vm.mem || 0) / (vm.maxmem || 1)) * 100)}%` }}
                       />
                     </div>
                   </div>
-                  <span className="text-[10px] font-medium text-slate-500">
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
                     {formatBytes(vm.mem)} / {formatBytes(vm.maxmem)}
                   </span>
                 </div>
               </td>
-              <td className="py-4 px-2 text-slate-600">
+              <td className="py-4 px-2 text-slate-600 dark:text-slate-300">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                    <div className="w-20 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner dark:shadow-black/20">
                       <div 
-                        className={cn("h-full rounded-full transition-all", vm.status === 'running' ? "bg-amber-400" : "bg-slate-300")}
+                        className={cn("h-full rounded-full transition-all", vm.status === 'running' ? "bg-amber-400 dark:bg-amber-500" : "bg-slate-300 dark:bg-slate-700")}
                         style={{ width: `${Math.min(100, ((vm.disk || 0) / (vm.maxdisk || 1)) * 100)}%` }}
                       />
                     </div>
                   </div>
-                  <span className="text-[10px] font-medium text-slate-500">
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
                     {vm.disk ? `${formatBytes(vm.disk)} / ${formatBytes(vm.maxdisk || 0)}` : `Allocated: ${formatBytes(vm.maxdisk || 0)}`}
                   </span>
                 </div>
               </td>
-              <td className="py-4 px-2 text-slate-600">
+              <td className="py-4 px-2 text-slate-600 dark:text-slate-300">
                 <div className="flex flex-col gap-1.5 text-[10.5px] font-mono">
                   {rates[vm.vmid] ? (
                     <>
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1 min-w-[70px]">
                           <span className={`font-bold ${rates[vm.vmid].netinRate > 0 ? 'text-emerald-500 animate-pulse' : 'text-emerald-500/50'}`}>▼</span> 
-                          <span className="text-slate-600">{formatBytes(rates[vm.vmid].netinRate)}/s</span>
+                          <span className="text-slate-600 dark:text-slate-400">{formatBytes(rates[vm.vmid].netinRate)}/s</span>
                         </div>
                         <div className="flex items-center gap-1 min-w-[70px]">
                           <span className={`font-bold ${rates[vm.vmid].netoutRate > 0 ? 'text-sky-500 animate-pulse' : 'text-sky-500/50'}`}>▲</span> 
-                          <span className="text-slate-600">{formatBytes(rates[vm.vmid].netoutRate)}/s</span>
+                          <span className="text-slate-600 dark:text-slate-400">{formatBytes(rates[vm.vmid].netoutRate)}/s</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-slate-500">
-                        <span className="text-slate-400">Disk I/O:</span> 
-                        <span className={`${rates[vm.vmid].diskIoRate > 0 ? 'text-indigo-500 font-medium animate-pulse' : 'text-slate-500'}`}>
+                      <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                        <span className="text-slate-400 dark:text-slate-500">Disk I/O:</span> 
+                        <span className={`${rates[vm.vmid].diskIoRate > 0 ? 'text-indigo-500 dark:text-indigo-400 font-medium animate-pulse' : 'text-slate-500 dark:text-slate-400'}`}>
                           {formatBytes(rates[vm.vmid].diskIoRate)}/s
                         </span>
                       </div>
                     </>
                   ) : (
-                    <div className="text-slate-400 italic">Calculating...</div>
+                    <div className="text-slate-400 dark:text-slate-500 italic">Calculating...</div>
                   )}
                 </div>
               </td>
@@ -290,7 +290,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                   <button
                     onClick={() => handlePowerAction(vm, 'start')}
                     disabled={vm.status === 'running' || isProcessing === vm.vmid}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 border border-green-200 dark:border-green-800/50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     title="Start VM"
                   >
                     <Power className="w-3.5 h-3.5" />
@@ -299,7 +299,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                   <button
                     onClick={() => handlePowerAction(vm, 'shutdown')}
                     disabled={vm.status !== 'running' || isProcessing === vm.vmid}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 border border-orange-200 dark:border-orange-800/50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     title="Graceful Shutdown"
                   >
                     <PowerOff className="w-3.5 h-3.5" />
@@ -308,7 +308,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                   <button
                     onClick={() => setActiveConsole(vm)}
                     disabled={vm.status !== 'running'}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 shadow-sm rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 shadow-sm rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     title="Open Web Console"
                   >
                     <Terminal className="w-3.5 h-3.5 text-blue-500" />
@@ -316,7 +316,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                   </button>
                   <button
                     onClick={() => setActiveMetrics(vm)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800/50 rounded-lg transition-all"
                     title="View Performance Metrics"
                   >
                     <svg className="w-3.5 h-3.5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
@@ -324,18 +324,18 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                   </button>
                   <button
                     onClick={() => setActiveConfig(vm)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/50 rounded-lg transition-all"
                     title="Hardware & Cloud-Init"
                   >
-                    <Settings className="w-3.5 h-3.5 text-purple-600" />
+                    <Settings className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                     Config
                   </button>
                   <button
                     onClick={() => setActiveManage(vm)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800/50 rounded-lg transition-all"
                     title="Manage VPS Settings"
                   >
-                    <Settings className="w-3.5 h-3.5 text-blue-600" />
+                    <Settings className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     Manage
                   </button>
                 </div>

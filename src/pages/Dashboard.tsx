@@ -256,7 +256,7 @@ export function Dashboard() {
         {hasItems && (
           <GlassCard>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-semibold text-lg text-slate-700">Virtual Machines & LXC</h2>
+              <h2 className="font-semibold text-lg text-slate-700 dark:text-slate-200 transition-colors">Virtual Machines & LXC</h2>
               {user?.role === 'ADMIN' && (
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
