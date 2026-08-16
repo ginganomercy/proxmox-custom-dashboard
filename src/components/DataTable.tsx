@@ -5,6 +5,7 @@ import { Play, Square, HardDrive, Terminal, X, Power, PowerOff, Settings, Maximi
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { ConsoleViewer } from './ConsoleViewer';
 import InstanceManageModal from './InstanceManageModal';
@@ -408,8 +409,8 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
         </tbody>
       </table>
 
-      {/* Console Modal — beautifully proportioned desktop window by default, native Fullscreen API on demand */}
-      {activeConsole && (
+      {/* ── Modals rendered via Portal to escape Framer Motion transforms ── */}
+      {activeConsole && createPortal(
         <div
           ref={consoleModalRef}
           className="fixed inset-0 z-50 flex items-center justify-center sm:p-4 bg-slate-900/100 sm:bg-slate-900/80 backdrop-blur-sm"
@@ -464,26 +465,31 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-      {/* Manage Modal */}
-      {activeManage && (
+      
+      {activeManage && createPortal(
         <InstanceManageModal
           vm={activeManage}
           nodeName={nodeName}
           onClose={() => setActiveManage(null)}
           onDeleteSuccess={onDeleteSuccess}
-        />
+        />,
+        document.body
       )}
-      {activeConfig && (
+      
+      {activeConfig && createPortal(
         <VMConfigModal
           node={nodeName}
           vmid={activeConfig.vmid}
           isOpen={true}
           onClose={() => setActiveConfig(null)}
-        />
+        />,
+        document.body
       )}
-      {activeMetrics && (
+      
+      {activeMetrics && createPortal(
         <MetricsModal
           isOpen={true}
           onClose={() => setActiveMetrics(null)}
@@ -491,7 +497,8 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
           vmid={activeMetrics.vmid}
           type={activeMetrics.type || 'qemu'}
           vmName={activeMetrics.name}
-        />
+        />,
+        document.body
       )}
     </div>
     </Tooltip.Provider>
