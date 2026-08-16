@@ -94,10 +94,10 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         rfb.resizeSession = true;
         rfb.viewOnly = false;
         
-        // Disable native mobile keyboard trap ONLY for touch devices to prevent double typing
-        // Desktop machines (no touch) MUST have focusOnClick = true to use physical keyboards normally
-        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        rfb.focusOnClick = !isTouchDevice; 
+        // Disable native mobile keyboard trap ONLY for TRUE mobile operating systems.
+        // Windows Laptops with Touchscreens MUST remain focusOnClick = true.
+        const isMobileOS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        rfb.focusOnClick = !isMobileOS; 
         
         rfbRef.current = rfb;
 
@@ -559,10 +559,13 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         className="relative flex-1 bg-black overflow-hidden"
         style={{ minHeight: 0 }}
         onClick={() => {
-          // Hanya fokus interceptor jika di perangkat sentuh (Mobile/Tablet)
-          const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-          if (isTouchDevice) {
+          // Hanya gunakan interceptor input untuk OS Handphone sejati
+          const isMobileOS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          if (isMobileOS) {
             mobileInputRef.current?.focus();
+          } else {
+            // Pemaksaan Fokus untuk Desktop/Laptop (mencegah klik diabaikan)
+            containerRef.current?.focus();
           }
         }}
       >
@@ -586,7 +589,8 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         {/* noVNC mounts its canvas into this div. It must be positioned to fill and center perfectly in 4:3 frame. */}
         <div
           ref={containerRef}
-          className="w-full h-full cursor-default relative z-10"
+          tabIndex={-1}
+          className="w-full h-full cursor-default relative z-10 outline-none"
           style={{ display: 'block' }}
         />
 
