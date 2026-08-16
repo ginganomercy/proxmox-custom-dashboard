@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #F0F4F8; /* Light icy blue/grey */
   --foreground: #1E293B; /* Deep Slate Blue */

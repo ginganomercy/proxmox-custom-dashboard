@@ -149,7 +149,7 @@ export function Dashboard() {
       <div className="fixed top-[-5%] right-[-5%] w-[40rem] h-[40rem] bg-blue-300 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
       <div className="fixed bottom-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-indigo-300 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 pointer-events-none"></div>
 
-      <div className="max-w-6xl mx-auto relative z-10 space-y-6">
+      <div className="w-full relative z-10 space-y-6">
         
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 dark:border-slate-800 shadow-sm">

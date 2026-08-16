@@ -278,7 +278,7 @@ export function AdminDashboard() {
           isLoadingSummary={isLoadingSummary}
         />
 
-        <div className="p-6 sm:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <div className="p-6 sm:p-8 space-y-6 w-full">
 
         {/* ════════════════════════════════════════════════════════════════
             SECTION 2: Quick Stats Row
