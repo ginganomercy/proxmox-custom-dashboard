@@ -249,122 +249,129 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
     <div className="flex flex-col w-full h-full bg-slate-900 overflow-hidden" style={{ minHeight: 0 }}>
 
       {/* ── Proxmox-style toolbar ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 px-3 py-2 bg-[#1e2535] border-b border-slate-700 flex-shrink-0 flex-wrap">
+      <div className="flex items-center gap-1 sm:gap-1 px-2 sm:px-3 py-2 bg-[#1e2535] border-b border-slate-700 flex-shrink-0 overflow-x-auto whitespace-nowrap" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {/* Connection status indicator */}
-        <div className="flex items-center gap-2 mr-3">
+        <div className="flex items-center gap-2 mr-2 sm:mr-3 flex-shrink-0">
           <div className={`w-2 h-2 rounded-full flex-shrink-0 ${statusColor}`} />
-          <span className="text-xs font-semibold text-slate-300">{statusLabel}</span>
+          <span className="text-xs font-semibold text-slate-300 hidden sm:inline">{statusLabel}</span>
         </div>
 
-        <div className="w-px h-5 bg-slate-600 mr-1" />
+        <div className="hidden sm:block w-px h-5 bg-slate-600 mr-1 flex-shrink-0" />
 
         {/* Ctrl+Alt+Delete */}
         <button
           onClick={sendCtrlAltDel}
           disabled={status !== 'connected'}
           title="Send Ctrl+Alt+Delete"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center justify-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
         >
-          <Keyboard className="w-3.5 h-3.5" />
-          Ctrl+Alt+Del
+          <Keyboard className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+          <span className="hidden sm:inline">Ctrl+Alt+Del</span>
         </button>
 
         {/* Clipboard */}
-        <div className="relative">
+        <div className="relative flex-shrink-0">
           <button
             onClick={readLocalClipboard}
             disabled={status !== 'connected'}
-            title="Paste clipboard to console"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            title="Clipboard / Send Text"
+            className="flex items-center justify-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            <Clipboard className="w-3.5 h-3.5" />
-            Clipboard
+            <Clipboard className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+            <span className="hidden sm:inline">Clipboard</span>
           </button>
+          
           {showClipboard && (
-            <div className="absolute top-full left-0 mt-1 z-50 w-72 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl p-3">
-              <p className="text-xs text-slate-400 font-semibold mb-2">Text to paste into console:</p>
-              <textarea
-                className="w-full h-24 bg-slate-900 border border-slate-600 rounded-lg p-2 text-xs text-slate-200 font-mono resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={clipboardText}
-                onChange={(e) => setClipboardText(e.target.value)}
-                placeholder="Type or paste text here..."
-              />
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={pasteClipboard}
-                  className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors"
-                >
-                  Send to Console
-                </button>
-                <button
-                  onClick={() => setShowClipboard(false)}
-                  className="py-1.5 px-3 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
+            <>
+              {/* Mobile overlay */}
+              <div className="fixed inset-0 z-40 bg-black/50 sm:hidden" onClick={() => setShowClipboard(false)} />
+              {/* Dropdown / Modal */}
+              <div className="fixed sm:absolute z-50 w-[90vw] sm:w-72 left-1/2 sm:left-0 top-1/2 sm:top-full -translate-x-1/2 sm:translate-x-0 -translate-y-1/2 sm:translate-y-0 sm:mt-1 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl p-4 sm:p-3">
+                <p className="text-sm sm:text-xs text-slate-400 font-semibold mb-2">Text to send to console:</p>
+                <textarea
+                  className="w-full h-32 sm:h-24 bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm sm:text-xs text-slate-200 font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={clipboardText}
+                  onChange={(e) => setClipboardText(e.target.value)}
+                  placeholder="Type or paste text here..."
+                  autoFocus
+                />
+                <div className="flex gap-2 mt-3 sm:mt-2">
+                  <button
+                    onClick={pasteClipboard}
+                    className="flex-1 py-2 sm:py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-xs font-bold rounded-lg transition-colors"
+                  >
+                    Send to Console
+                  </button>
+                  <button
+                    onClick={() => setShowClipboard(false)}
+                    className="py-2 sm:py-1.5 px-4 sm:px-3 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm sm:text-xs font-bold rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 
-        <div className="w-px h-5 bg-slate-600 mx-1" />
+        <div className="hidden sm:block w-px h-5 bg-slate-600 mx-1 flex-shrink-0" />
 
         {/* Screenshot */}
         <button
           onClick={takeScreenshot}
           disabled={status !== 'connected'}
           title="Take screenshot"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center justify-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
         >
-          <Camera className="w-3.5 h-3.5" />
-          Screenshot
+          <Camera className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+          <span className="hidden sm:inline">Screenshot</span>
         </button>
 
-        <div className="w-px h-5 bg-slate-600 mx-1" />
+        <div className="hidden sm:block w-px h-5 bg-slate-600 mx-1 flex-shrink-0" />
 
         {/* Zoom / Scale controls */}
         <button
           onClick={toggleScale}
           disabled={status !== 'connected'}
           title={isScaled ? 'Switch to 1:1 native resolution' : 'Fit console to window'}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+          className={`flex items-center justify-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0 ${
             isScaled
               ? 'text-blue-400 bg-blue-500/15 hover:bg-blue-500/25'
               : 'text-slate-300 hover:text-white hover:bg-slate-700'
           }`}
         >
-          {isScaled ? <Maximize className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
-          {isScaled ? 'Scaled' : '1:1'}
+          {isScaled ? <Maximize className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> : <Monitor className="w-4 h-4 sm:w-3.5 sm:h-3.5" />}
+          <span className="hidden sm:inline">{isScaled ? 'Scaled' : '1:1'}</span>
         </button>
 
-        <div className="w-px h-5 bg-slate-600 mx-1" />
+        <div className="hidden sm:block w-px h-5 bg-slate-600 mx-1 flex-shrink-0" />
 
         {/* View-only mode toggle */}
         <button
           onClick={toggleViewOnly}
           disabled={status !== 'connected'}
           title={viewOnly ? 'Exit view-only mode (enable input)' : 'Enter view-only mode (disable input)'}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+          className={`flex items-center justify-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0 ${
             viewOnly
               ? 'text-amber-400 bg-amber-500/15 hover:bg-amber-500/25'
               : 'text-slate-300 hover:text-white hover:bg-slate-700'
           }`}
         >
-          <MousePointer className="w-3.5 h-3.5" />
-          {viewOnly ? 'View Only' : 'Interactive'}
+          <MousePointer className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+          <span className="hidden sm:inline">{viewOnly ? 'View Only' : 'Interactive'}</span>
         </button>
 
         {/* Reconnect */}
         {(status === 'disconnected' || status === 'error') && (
           <>
-            <div className="w-px h-5 bg-slate-600 mx-1" />
+            <div className="hidden sm:block w-px h-5 bg-slate-600 mx-1 flex-shrink-0" />
             <button
               onClick={reconnect}
               title="Reconnect to console"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold text-green-400 bg-green-500/15 hover:bg-green-500/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-md text-xs font-semibold text-green-400 bg-green-500/15 hover:bg-green-500/25 transition-colors flex-shrink-0"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reconnect
+              <RotateCcw className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden sm:inline">Reconnect</span>
             </button>
           </>
         )}
