@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import logoUrl from '@/assets/logo.svg?url';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import {
   LogOut, Server, Activity, Cpu, MemoryStick, HardDrive, Clock, Moon, Sun,
@@ -132,15 +131,8 @@ export function AdminDashboard() {
   }, [activeTab, logTab]);
 
 
-  const checkAuth = () => {
-    const token = Cookies.get('token');
-    if (!token) { navigate('/login'); return false; }
-    return true;
-  };
-
   // 1. Fetch Global Summary (On Mount & Refresh)
   const fetchGlobalData = async (silent = false) => {
-    if (!checkAuth()) return;
     if (!silent) setIsLoadingSummary(true);
     try {
       let nodeToUse = targetNode;
@@ -198,7 +190,12 @@ export function AdminDashboard() {
   }, [activeTab, targetNode]);
 
 
-  const handleLogout = () => { Cookies.remove('token'); navigate('/login'); };
+  const handleLogout = async () => { 
+    try {
+      await api.post('/auth/logout');
+    } catch(e) {}
+    navigate('/login'); 
+  };
   // ── Derived Proxmox Capacity Metrics ─────────────────────────────────────────
   const totalRamBytes = nodeStatus?.memory?.total ?? 0;
   const usedRamBytes = nodeStatus?.memory?.used ?? 0;

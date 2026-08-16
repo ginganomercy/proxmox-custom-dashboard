@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import logoUrl from '@/assets/logo.svg?url';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -32,11 +31,7 @@ const itemVariants: Variants = {
 const longApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : 'https://cloud-core.pbjt.web.id/api'),
   timeout: 300000, // 5 minutes
-});
-longApi.interceptors.request.use((config) => {
-  const token = Cookies.get('token');
-  if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+  withCredentials: true,
 });
 
 /**
@@ -80,18 +75,7 @@ export function Dashboard() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string>('');
 
-  const checkAuth = () => {
-    const token = Cookies.get('token');
-    if (!token) {
-      navigate('/login');
-      return false;
-    }
-    return true;
-  };
-
   const fetchData = async (silent = false) => {
-    if (!checkAuth()) return;
-    
     if (!silent) setIsLoading(true);
     setError('');
     
@@ -117,8 +101,8 @@ export function Dashboard() {
 
       // If /auth/me returns 404, the user record is gone (DB was wiped).
       // Force a clean logout so the user can re-register.
-      if (userRes && (userRes.status === 404 || userRes.data?.error === 'user not found')) {
-        Cookies.remove('token');
+      if (userRes && (userRes.status === 404 || userRes.data?.error === 'user not found' || userRes.status === 401)) {
+        // Force a clean logout so the user can re-register.
         navigate('/login');
         return;
       }
@@ -150,8 +134,10 @@ export function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleLogout = () => {
-    Cookies.remove('token');
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch(e) {}
     navigate('/login');
   };
 

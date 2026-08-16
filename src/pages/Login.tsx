@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import logoUrl from '@/assets/logo.svg?url';
 import { useNavigate, Link } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Server, Lock, User, Eye, EyeOff } from 'lucide-react';
@@ -27,10 +26,11 @@ export function Login() {
 
     try {
       const response = await api.post('/auth/login', { username, password });
-      if (response.data.token) {
-        // Store JWT securely in cookies
-        Cookies.set('token', response.data.token, { expires: 1, secure: true, sameSite: 'strict' });
-        
+      
+      // Enterprise Hardening: Token is now securely stored in HttpOnly Cookie by the backend.
+      // We no longer manually read or store it via JavaScript.
+
+      if (response.data) {
         // Cek role untuk menentukan arah redirect (Intelligent Routing)
         try {
           const userRes = await api.get('/auth/me');
