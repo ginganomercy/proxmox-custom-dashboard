@@ -84,7 +84,16 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         const encodedTicket = encodeURIComponent(ticket);
         const wsUrl = `${wsBaseUrl}/console/${node}/${vmid}?port=${port}&vncticket=${encodedTicket}`;
 
-        const rfb = new RFB(containerRef.current, wsUrl, {
+        // Create a pure, isolated DOM element outside of React's lifecycle.
+        // This PREVENTS React Strict Mode from leaving zombie event listeners on the div
+        // when the component unmounts and remounts rapidly.
+        const target = document.createElement('div');
+        target.className = 'w-full h-full cursor-default relative z-10 outline-none';
+        target.style.display = 'block';
+        target.tabIndex = -1;
+        containerRef.current.appendChild(target);
+
+        const rfb = new RFB(target, wsUrl, {
           credentials: { password: password || ticket },
           wsProtocols: ['jwt', token],
         });
@@ -106,7 +115,11 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
             setStatus('connected');
             setErrorMsg('');
             // Force a size recalculation after the canvas appears
-            setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+            setTimeout(() => {
+              window.dispatchEvent(new Event('resize'));
+              // Auto-focus the terminal so the user can type immediately without clicking
+              target.focus();
+            }, 100);
           }
         });
 
@@ -161,6 +174,12 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
       if (rfbRef.current) {
         try { rfbRef.current.disconnect(); } catch (_) { /* ignore */ }
         rfbRef.current = null;
+      }
+      
+      // Physically destroy the target element from the DOM to eradicate
+      // any lingering "zombie" event listeners attached by noVNC.
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
       }
     };
   }, [node, type, vmid, reconnectTrigger]);
@@ -564,8 +583,10 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
           if (isMobileOS) {
             mobileInputRef.current?.focus();
           } else {
-            // Pemaksaan Fokus untuk Desktop/Laptop (mencegah klik diabaikan)
-            containerRef.current?.focus();
+            // Pemaksaan Fokus untuk Desktop/Laptop.
+            // Karena sekarang targetnya dibuat dinamis, kita paksa fokus anak pertamanya.
+            const target = containerRef.current?.firstChild as HTMLElement;
+            if (target) target.focus();
           }
         }}
       >
@@ -587,11 +608,10 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
           className="absolute top-0 left-0 w-1 h-1 opacity-0 z-0 pointer-events-none"
         />
         {/* noVNC mounts its canvas into this div. It must be positioned to fill and center perfectly in 4:3 frame. */}
+        {/* We leave this div empty initially. The pure DOM element will be appended here. */}
         <div
           ref={containerRef}
-          tabIndex={-1}
-          className="w-full h-full cursor-default relative z-10 outline-none"
-          style={{ display: 'block' }}
+          className="w-full h-full relative"
         />
 
         {/* Connection overlay states */}
