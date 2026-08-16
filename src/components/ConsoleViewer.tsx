@@ -41,10 +41,14 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   // containerRef: the absolute-positioned div that noVNC mounts its canvas into
   const containerRef = useRef<HTMLDivElement>(null);
   const rfbRef = useRef<RFB | null>(null);
+  const mobileInputRef = useRef<HTMLTextAreaElement>(null);
+
   const [status, setStatus] = useState<ConnectionStatus>('connecting');
   const [errorMsg, setErrorMsg] = useState('');
   const [clipboardText, setClipboardText] = useState('');
   const [showClipboard, setShowClipboard] = useState(false);
+  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
+  const [mobileInput, setMobileInput] = useState('');
   const [isScaled, setIsScaled] = useState(true);
   const [viewOnly, setViewOnly] = useState(false);
   const [ctrlActive, setCtrlActive] = useState(false);
@@ -199,16 +203,14 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
     rfbRef.current.sendKey(SHIFT, false);
   }, []);
 
-  /** Paste clipboard text into the remote session using keystroke injection */
+  /** Universal Type/Paste mechanism bypassing buggy clipboard protocols */
   const pasteClipboard = useCallback(async () => {
     if (!rfbRef.current || !clipboardText) return;
-    
-    const text = clipboardText;
-    setShowClipboard(false);
-    setClipboardText(''); // Clear after sending
 
-    for (let i = 0; i < text.length; i++) {
-      const charCode = text.charCodeAt(i);
+    setIsTypeModalOpen(false); // Close modal if open
+
+    for (let i = 0; i < clipboardText.length; i++) {
+      const charCode = clipboardText.charCodeAt(i);
       
       // Proxmox noVNC native keystroke injection
       rfbRef.current.sendKey(charCode, true);
@@ -218,6 +220,28 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
       await new Promise(r => setTimeout(r, 5));
     }
   }, [clipboardText]);
+
+  /** Hidden interceptor for Termux-style native mobile typing */
+  const handleMobileInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!rfbRef.current) return;
+    const val = e.target.value;
+    
+    if (val.length > mobileInput.length) {
+      // Character added (typing)
+      const newChar = val.slice(-1);
+      const code = newChar.charCodeAt(0);
+      rfbRef.current.sendKey(code, true);
+      rfbRef.current.sendKey(code, false);
+    } else if (val.length < mobileInput.length) {
+      // Character removed (backspace)
+      rfbRef.current.sendKey(0xFF08, true); // Backspace Keysym
+      rfbRef.current.sendKey(0xFF08, false);
+    }
+    
+    // Always clear the input to prevent composition buffer overflow
+    // and to keep it completely stateless (just an event generator)
+    setMobileInput('');
+  };
 
   /** Read local clipboard and stage it for pasting */
   const readLocalClipboard = useCallback(async () => {
@@ -518,7 +542,24 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
       <div
         className="relative flex-1 bg-black overflow-hidden"
         style={{ minHeight: 0 }}
+        onClick={() => {
+          // Hanya fokus jika di layar mobile (lebar kecil)
+          if (window.innerWidth < 640) {
+            mobileInputRef.current?.focus();
+          }
+        }}
       >
+        {/* Hidden Interceptor for Termux-style Mobile Typing (Bypasses noVNC double-typing bugs) */}
+        <textarea
+          ref={mobileInputRef}
+          value={mobileInput}
+          onChange={handleMobileInput}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          className="absolute top-0 left-0 w-1 h-1 opacity-0 z-0 pointer-events-none"
+        />
         {/* noVNC mounts its canvas into this div. It must be positioned to fill and center perfectly in 4:3 frame. */}
         <div
           ref={containerRef}

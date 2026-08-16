@@ -29,10 +29,10 @@ export function AdminSidebar({
 
       <aside
         className={`fixed inset-y-0 left-0 w-72 bg-white dark:bg-slate-900 flex flex-col flex-shrink-0 border-r border-slate-200 dark:border-slate-800 shadow-xl z-40
-          transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:shadow-none
+          transform transition-all duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:shadow-none
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3.5">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3.5 flex-shrink-0">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/30 bg-transparent">
               <img src={logoUrl} alt="Cloud Baja Tegal Logo" className="w-full h-full object-contain" />
@@ -53,7 +53,7 @@ export function AdminSidebar({
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
           <div className="px-5 pb-3">
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">KLUSTER & MANAJEMEN</span>
           </div>
@@ -103,7 +103,7 @@ export function AdminSidebar({
         </nav>
 
         {/* Bottom Actions */}
-        <div className="p-5 border-t border-slate-200 dark:border-slate-800 space-y-4">
+        <div className="p-5 border-t border-slate-200 dark:border-slate-800 space-y-4 flex-shrink-0">
           <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl mb-4 border border-slate-100 dark:border-slate-700/50">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 dark:bg-cyan-500/20 dark:text-cyan-400 flex items-center justify-center font-bold">
