@@ -91,7 +91,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
 
         // Set scaling BEFORE the connection completes so the initial render fills space
         rfb.scaleViewport = true;
-        rfb.resizeSession = true;
+        rfb.resizeSession = false; // MUST be false for Proxmox to prevent 'Invalid screen layout' rejection by QEMU
         rfb.viewOnly = false;
         
         // Disable native mobile keyboard trap ONLY for TRUE mobile operating systems.
@@ -442,15 +442,15 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         <button
           onClick={toggleViewOnly}
           disabled={status !== 'connected'}
-          title={viewOnly ? 'Exit view-only mode (enable input)' : 'Enter view-only mode (disable input)'}
+          title={viewOnly ? 'Switch to Interactive Mode' : 'Switch to Read-Only Mode'}
           className={`flex items-center justify-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0 ${
             viewOnly
               ? 'text-amber-400 bg-amber-500/15 hover:bg-amber-500/25'
-              : 'text-slate-300 hover:text-white hover:bg-slate-700'
+              : 'text-blue-400 bg-blue-500/15 hover:bg-blue-500/25'
           }`}
         >
-          <MousePointer className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-          <span className="hidden sm:inline">{viewOnly ? 'View Only' : 'Interactive'}</span>
+          {viewOnly ? <MousePointer className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> : <Keyboard className="w-4 h-4 sm:w-3.5 sm:h-3.5" />}
+          <span className="hidden sm:inline">{viewOnly ? 'Read-Only' : 'Interactive'}</span>
         </button>
 
         {/* Reconnect */}
