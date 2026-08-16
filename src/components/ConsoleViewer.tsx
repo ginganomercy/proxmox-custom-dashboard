@@ -90,7 +90,8 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         const target = document.createElement('div');
         target.className = 'w-full h-full cursor-default relative z-10 outline-none';
         target.style.display = 'block';
-        target.tabIndex = -1;
+        // CRITICAL FIX: Must be 0 (not -1) so React Focus Traps don't steal focus away!
+        target.tabIndex = 0;
         containerRef.current.appendChild(target);
 
         const rfb = new RFB(target, wsUrl, {
@@ -115,16 +116,6 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
             setStatus('connected');
             setErrorMsg('');
             
-            // "The Nuclear Option" - Part 1: Ungrab native keyboard entirely on Desktop
-            // Since native focus is unreliable in React Portals, we disable it and
-            // use a Global Window Capture instead.
-            if (!isMobileOS) {
-              setTimeout(() => {
-                const kbd = (rfb as any)._keyboard;
-                if (kbd) kbd.ungrab();
-              }, 500);
-            }
-
             // Force a size recalculation after the canvas appears
             setTimeout(() => {
               window.dispatchEvent(new Event('resize'));
@@ -194,50 +185,6 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
       }
     };
   }, [node, type, vmid, reconnectTrigger]);
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // "The Nuclear Option" - Part 2: Global Window Keyboard Override
-  // ─────────────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    // We only apply this extreme override on Desktop OS. Mobile uses native interception.
-    const isMobileOS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobileOS) return;
-
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (showClipboard) return; // Allow typing in the clipboard textarea normally
-      if (rfbRef.current && !viewOnly) {
-         const kbd = (rfbRef.current as any)._keyboard;
-         if (kbd) {
-           // Force noVNC's internal engine to think it is focused
-           kbd._focused = true;
-           // Directly inject raw keyboard event into noVNC's brain
-           kbd._handleKeyDown(e);
-           e.preventDefault(); // Prevent browser scrolling or shortcuts
-         }
-      }
-    };
-
-    const handleGlobalKeyUp = (e: KeyboardEvent) => {
-      if (showClipboard) return;
-      if (rfbRef.current && !viewOnly) {
-         const kbd = (rfbRef.current as any)._keyboard;
-         if (kbd) {
-           kbd._focused = true;
-           kbd._handleKeyUp(e);
-           e.preventDefault();
-         }
-      }
-    };
-    
-    // Use `capture: true` to hijack the keystrokes BEFORE any React component or DOM node can intercept them!
-    window.addEventListener('keydown', handleGlobalKeyDown, { capture: true });
-    window.addEventListener('keyup', handleGlobalKeyUp, { capture: true });
-    
-    return () => {
-       window.removeEventListener('keydown', handleGlobalKeyDown, { capture: true });
-       window.removeEventListener('keyup', handleGlobalKeyUp, { capture: true });
-    };
-  }, [viewOnly, showClipboard]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Toolbar actions
