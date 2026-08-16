@@ -184,11 +184,24 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
     rfbRef.current.sendCtrlAltDel();
   }, []);
 
-  /** Paste clipboard text into the remote session */
-  const pasteClipboard = useCallback(() => {
+  /** Paste clipboard text into the remote session using keystroke injection */
+  const pasteClipboard = useCallback(async () => {
     if (!rfbRef.current || !clipboardText) return;
-    rfbRef.current.clipboardPasteFrom(clipboardText);
+    
+    const text = clipboardText;
     setShowClipboard(false);
+    setClipboardText(''); // Clear after sending
+
+    for (let i = 0; i < text.length; i++) {
+      const charCode = text.charCodeAt(i);
+      
+      // Proxmox noVNC native keystroke injection
+      rfbRef.current.sendKey(charCode, true);
+      rfbRef.current.sendKey(charCode, false);
+      
+      // 5ms delay between keystrokes to ensure VM processes them
+      await new Promise(r => setTimeout(r, 5));
+    }
   }, [clipboardText]);
 
   /** Read local clipboard and stage it for pasting */
@@ -198,6 +211,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
       setClipboardText(text);
       setShowClipboard(true);
     } catch (_) {
+      setClipboardText('');
       setShowClipboard(true); // open manual input if permission denied
     }
   }, []);
@@ -296,11 +310,11 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
           <button
             onClick={readLocalClipboard}
             disabled={status !== 'connected'}
-            title="Clipboard / Send Text"
+            title="Type or Paste Text"
             className="flex items-center justify-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <Clipboard className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-            <span className="hidden sm:inline">Clipboard</span>
+            <span className="hidden sm:inline">Type/Paste</span>
           </button>
           
           {showClipboard && (
@@ -309,18 +323,19 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
               <div className="fixed inset-0 z-40 bg-black/50 sm:hidden" onClick={() => setShowClipboard(false)} />
               {/* Dropdown / Modal */}
               <div className="fixed sm:absolute z-50 w-[90vw] sm:w-72 left-1/2 sm:left-0 top-1/2 sm:top-full -translate-x-1/2 sm:translate-x-0 -translate-y-1/2 sm:translate-y-0 sm:mt-1 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl p-4 sm:p-3">
-                <p className="text-sm sm:text-xs text-slate-400 font-semibold mb-2">Text to send to console:</p>
+                <p className="text-sm sm:text-xs text-slate-400 font-semibold mb-2">Ketik perintah atau Paste teks di sini:</p>
                 <textarea
                   className="w-full h-32 sm:h-24 bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm sm:text-xs text-slate-200 font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={clipboardText}
                   onChange={(e) => setClipboardText(e.target.value)}
-                  placeholder="Type or paste text here..."
+                  placeholder="Contoh: apt update && apt upgrade"
                   autoFocus
                 />
                 <div className="flex gap-2 mt-3 sm:mt-2">
                   <button
                     onClick={pasteClipboard}
-                    className="flex-1 py-2 sm:py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-xs font-bold rounded-lg transition-colors"
+                    disabled={!clipboardText}
+                    className="flex-1 py-2 sm:py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white text-sm sm:text-xs font-bold rounded-lg transition-colors"
                   >
                     Send to Console
                   </button>
@@ -401,6 +416,16 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
 
       {/* ── Termux-style Extra Keys (Mobile Only) ─────────────────────────── */}
       <div className="flex sm:hidden items-center gap-1.5 px-2 py-1.5 bg-[#151a25] border-b border-slate-800 overflow-x-auto whitespace-nowrap" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <button
+          onClick={() => {
+            setClipboardText('');
+            setShowClipboard(true);
+          }}
+          className="px-3 py-1 bg-blue-600 hover:bg-blue-500 active:bg-blue-400 rounded text-xs font-bold text-white transition-colors flex-shrink-0 flex items-center gap-1 shadow-sm"
+        >
+          ⌨️ TYPE
+        </button>
+        <div className="w-px h-4 bg-slate-700 flex-shrink-0 mx-0.5"></div>
         <button
           onClick={() => sendKeySym(0xFF1B)}
           className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded text-xs font-mono text-slate-300 transition-colors flex-shrink-0"
