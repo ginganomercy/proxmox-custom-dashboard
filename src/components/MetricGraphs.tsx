@@ -98,7 +98,7 @@ export function MetricGraphs({ node, vmid, type }: MetricGraphsProps) {
             <option value="month">Past Month</option>
           </select>
           <button 
-            onClick={fetchData}
+            onClick={() => fetchData()}
             disabled={isLoading}
             className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-blue-600 shadow-sm transition-colors"
           >

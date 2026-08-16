@@ -12,9 +12,9 @@ import { MetricChart } from '@/components/MetricChart';
 import { DataTable } from '@/components/DataTable';
 import { CreateVMModal } from '@/components/CreateVMModal';
 import { LogOut, Server, Activity, RefreshCw, Plus, Rocket, MonitorPlay, CheckCircle2, Loader2, Moon, Sun } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -22,7 +22,7 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
@@ -200,7 +200,7 @@ export function Dashboard() {
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
             <button 
-              onClick={fetchData}
+              onClick={() => fetchData()}
               disabled={isLoading}
               className="flex items-center gap-2 px-4 py-2 bg-white/60 hover:bg-white text-slate-700 rounded-xl text-sm font-medium transition-all border border-white disabled:opacity-50"
             >

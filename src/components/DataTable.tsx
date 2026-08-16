@@ -348,7 +348,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
                         {/* Shutdown */}
                         <DropdownMenu.Item asChild>
                           <button
-                            onClick={() => handlePowerAction(vm, 'shutdown')}
+                            onClick={() => handlePowerAction(vm, 'stop')}
                             disabled={vm.status !== 'running' || isProcessing === vm.vmid}
                             className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-orange-700 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors cursor-pointer outline-none disabled:opacity-40 disabled:cursor-not-allowed w-full"
                           >
@@ -494,5 +494,6 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
         />
       )}
     </div>
+    </Tooltip.Provider>
   );
 }
