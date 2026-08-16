@@ -93,7 +93,12 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         rfb.scaleViewport = true;
         rfb.resizeSession = true;
         rfb.viewOnly = false;
-        rfb.focusOnClick = false; // Disable native mobile keyboard trap to prevent double typing
+        
+        // Disable native mobile keyboard trap ONLY for touch devices to prevent double typing
+        // Desktop machines (no touch) MUST have focusOnClick = true to use physical keyboards normally
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        rfb.focusOnClick = !isTouchDevice; 
+        
         rfbRef.current = rfb;
 
         rfb.addEventListener('connect', () => {
@@ -222,7 +227,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   }, [clipboardText]);
 
   /** Hidden interceptor for Termux-style native mobile typing */
-  const handleMobileInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleMobileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!rfbRef.current) return;
     const val = e.target.value;
     
@@ -232,15 +237,26 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
       const code = newChar.charCodeAt(0);
       rfbRef.current.sendKey(code, true);
       rfbRef.current.sendKey(code, false);
-    } else if (val.length < mobileInput.length) {
-      // Character removed (backspace)
-      rfbRef.current.sendKey(0xFF08, true); // Backspace Keysym
-      rfbRef.current.sendKey(0xFF08, false);
     }
     
     // Always clear the input to prevent composition buffer overflow
     // and to keep it completely stateless (just an event generator)
     setMobileInput('');
+  };
+
+  /** Intercept special keys that onChange won't catch effectively on mobile */
+  const handleMobileKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!rfbRef.current) return;
+    
+    if (e.key === 'Enter') {
+      rfbRef.current.sendKey(0xFF0D, true);
+      rfbRef.current.sendKey(0xFF0D, false);
+      e.preventDefault();
+    } else if (e.key === 'Backspace') {
+      rfbRef.current.sendKey(0xFF08, true);
+      rfbRef.current.sendKey(0xFF08, false);
+      e.preventDefault();
+    }
   };
 
   /** Read local clipboard and stage it for pasting */
@@ -543,17 +559,24 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         className="relative flex-1 bg-black overflow-hidden"
         style={{ minHeight: 0 }}
         onClick={() => {
-          // Hanya fokus jika di layar mobile (lebar kecil)
-          if (window.innerWidth < 640) {
+          // Hanya fokus interceptor jika di perangkat sentuh (Mobile/Tablet)
+          const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+          if (isTouchDevice) {
             mobileInputRef.current?.focus();
           }
         }}
       >
-        {/* Hidden Interceptor for Termux-style Mobile Typing (Bypasses noVNC double-typing bugs) */}
-        <textarea
-          ref={mobileInputRef}
+        {/* 
+            Hidden Interceptor for Termux-style Mobile Typing 
+            CRITICAL HACK: `type="password"` completely kills Gboard predictive text 
+            and composition events, ensuring 100% pure keystroke injection without double typing.
+        */}
+        <input
+          type="password"
+          ref={mobileInputRef as any}
           value={mobileInput}
           onChange={handleMobileInput}
+          onKeyDown={handleMobileKeyDown}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="none"
@@ -563,8 +586,8 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         {/* noVNC mounts its canvas into this div. It must be positioned to fill and center perfectly in 4:3 frame. */}
         <div
           ref={containerRef}
-          className="absolute inset-0 flex items-center justify-center bg-black"
-          style={{ width: '100%', height: '100%' }}
+          className="w-full h-full cursor-default relative z-10"
+          style={{ display: 'block' }}
         />
 
         {/* Connection overlay states */}
