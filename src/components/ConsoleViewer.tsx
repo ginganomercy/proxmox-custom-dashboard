@@ -89,6 +89,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
         rfb.scaleViewport = true;
         rfb.resizeSession = true;
         rfb.viewOnly = false;
+        rfb.focusOnClick = false; // Disable native mobile keyboard trap to prevent double typing
         rfbRef.current = rfb;
 
         rfb.addEventListener('connect', () => {
@@ -182,6 +183,20 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   const sendCtrlAltDel = useCallback(() => {
     if (!rfbRef.current) return;
     rfbRef.current.sendCtrlAltDel();
+  }, []);
+
+  /** Scroll terminal up or down by sending Shift+PageUp/PageDown */
+  const scrollTerminal = useCallback(async (direction: 'up' | 'down') => {
+    if (!rfbRef.current) return;
+    const SHIFT = 0xFFE1;
+    const PAGE_KEY = direction === 'up' ? 0xFF55 : 0xFF56; // 0xFF55 is PageUp, 0xFF56 is PageDown
+
+    rfbRef.current.sendKey(SHIFT, true);
+    await new Promise(r => setTimeout(r, 10)); // Ensure Shift registers first
+    rfbRef.current.sendKey(PAGE_KEY, true);
+    rfbRef.current.sendKey(PAGE_KEY, false);
+    await new Promise(r => setTimeout(r, 10));
+    rfbRef.current.sendKey(SHIFT, false);
   }, []);
 
   /** Paste clipboard text into the remote session using keystroke injection */
@@ -431,6 +446,18 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
           className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded text-xs font-mono text-slate-300 transition-colors flex-shrink-0"
         >
           ESC
+        </button>
+        <button
+          onClick={() => scrollTerminal('up')}
+          className="px-2 py-1 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded text-[10px] font-bold text-slate-200 transition-colors flex-shrink-0"
+        >
+          ↑ SCROLL
+        </button>
+        <button
+          onClick={() => scrollTerminal('down')}
+          className="px-2 py-1 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded text-[10px] font-bold text-slate-200 transition-colors flex-shrink-0"
+        >
+          ↓ SCROLL
         </button>
         <button
           onClick={() => sendKeySym(0xFF09)}
