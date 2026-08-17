@@ -68,6 +68,11 @@ export function Dashboard() {
       localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
+
+  // Auth guard: blocks ALL rendering until we confirm the session is valid.
+  // This prevents the flash-of-unauthenticated-content (FOUC) where the
+  // dashboard UI briefly renders before the redirect to /login fires.
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [user, setUser] = useState<any>(null);
@@ -128,11 +133,33 @@ export function Dashboard() {
     }
   };
 
+  // Auth guard effect: runs ONCE on mount, BEFORE fetchData.
+  // Validates session via /auth/me. Only if valid, lifts the auth gate
+  // and triggers the full data fetch. If invalid, redirects immediately.
   useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await api.get('/auth/me');
+        if (!res?.data) {
+          navigate('/login', { replace: true });
+          return;
+        }
+        // Session is confirmed valid — lift the auth gate
+        setIsAuthChecking(false);
+      } catch {
+        navigate('/login', { replace: true });
+      }
+    };
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    // Only start polling after auth is confirmed
+    if (isAuthChecking) return;
     fetchData(false);
     const interval = setInterval(() => fetchData(true), 15000); // stable 15s auto-refresh
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthChecking]);
 
   const handleLogout = async () => {
     try {
@@ -144,6 +171,17 @@ export function Dashboard() {
   };
 
   const hasItems = vms.length > 0;
+
+  // Auth gate: render a clean full-screen loader while the session check is in flight.
+  // This is the key guard that prevents ANY dashboard UI from flashing before redirect.
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950">
+        <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Memverifikasi sesi...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8 relative overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200">

@@ -1,5 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
 import logoUrl from '@/assets/logo.svg?url';
+import api from '@/lib/api';
 import { 
   Server, 
   Activity, 
@@ -17,7 +18,6 @@ import {
   X
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -26,10 +26,13 @@ export function LandingPage() {
 
   useEffect(() => {
     document.title = "Cloud Baja Tegal | VPS Akademik Politeknik Baja Tegal";
-    const token = Cookies.get('token');
-    if (token) {
-      setIsLoggedIn(true);
-    }
+    // HttpOnly cookies cannot be read by JS — must verify auth via API.
+    // We fire this silently; if it fails (401/network) we just stay logged-out state.
+    api.get('/auth/me').then((res) => {
+      if (res?.data) setIsLoggedIn(true);
+    }).catch(() => {
+      // Not authenticated — leave isLoggedIn = false, show "Masuk ke Sistem"
+    });
   }, []);
 
   return (

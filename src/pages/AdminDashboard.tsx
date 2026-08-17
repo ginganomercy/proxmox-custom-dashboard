@@ -65,6 +65,9 @@ export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'orders' | 'vms' | 'logs' | 'uptime'>('orders');
   const [logTab, setLogTab] = useState<'tasks' | 'clusterlog'>('tasks');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Auth guard: blocks ALL rendering until session + ADMIN role are confirmed.
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   
   // Data States
   const [summary, setSummary] = useState<any>({ total_orders: 0, pending_orders: 0 });
@@ -160,6 +163,23 @@ export function AdminDashboard() {
     fetchGlobalData(false); 
     const interval = setInterval(() => fetchGlobalData(true), 15000); // stable 15s auto-refresh
     return () => clearInterval(interval);
+  }, [isAuthChecking]);
+
+  // Auth guard effect: verify session AND admin role before rendering anything.
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await api.get('/auth/me');
+        if (!res?.data || res.data.role !== 'ADMIN') {
+          navigate('/login', { replace: true });
+          return;
+        }
+        setIsAuthChecking(false);
+      } catch {
+        navigate('/login', { replace: true });
+      }
+    };
+    checkAuth();
   }, []);
 
 
@@ -248,6 +268,16 @@ export function AdminDashboard() {
     };
     return map[status] ?? 'bg-slate-100 text-slate-600';
   };
+
+  // Auth gate: render a clean full-screen loader while the session check is in flight.
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950">
+        <RefreshCw className="w-10 h-10 text-blue-500 animate-spin" />
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Memverifikasi akses admin...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col lg:flex-row relative transition-colors duration-200">
