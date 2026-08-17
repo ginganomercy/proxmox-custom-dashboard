@@ -194,7 +194,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   // ─────────────────────────────────────────────────────────────────────────
 
   const sendKeySym = useCallback((keysym: number) => {
-    if (!rfbRef.current) return;
+    if (!rfbRef.current || viewOnly) return;
     
     if (ctrlActive) rfbRef.current.sendKey(0xFFE3, true); // Ctrl Left
     if (altActive) rfbRef.current.sendKey(0xFFE9, true);  // Alt Left
@@ -214,13 +214,13 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
 
   /** Send Ctrl+Alt+Delete to the remote VM */
   const sendCtrlAltDel = useCallback(() => {
-    if (!rfbRef.current) return;
+    if (!rfbRef.current || viewOnly) return;
     rfbRef.current.sendCtrlAltDel();
-  }, []);
+  }, [viewOnly]);
 
   /** Scroll terminal up or down by sending Shift+PageUp/PageDown */
   const scrollTerminal = useCallback(async (direction: 'up' | 'down') => {
-    if (!rfbRef.current) return;
+    if (!rfbRef.current || viewOnly) return;
     const SHIFT = 0xFFE1;
     const PAGE_KEY = direction === 'up' ? 0xFF55 : 0xFF56; // 0xFF55 is PageUp, 0xFF56 is PageDown
 
@@ -234,7 +234,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
 
   /** Universal Type/Paste mechanism bypassing buggy clipboard protocols */
   const pasteClipboard = useCallback(async () => {
-    if (!rfbRef.current || !clipboardText) return;
+    if (!rfbRef.current || !clipboardText || viewOnly) return;
 
     setIsTypeModalOpen(false); // Close modal if open
 
@@ -252,7 +252,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
 
   /** Hidden interceptor for Termux-style native mobile typing */
   const handleMobileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!rfbRef.current) return;
+    if (!rfbRef.current || viewOnly) return;
     const val = e.target.value;
     
     if (val.length > mobileInput.length) {
@@ -270,7 +270,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
 
   /** Intercept special keys that onChange won't catch effectively on mobile */
   const handleMobileKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!rfbRef.current) return;
+    if (!rfbRef.current || viewOnly) return;
     
     if (e.key === 'Enter') {
       rfbRef.current.sendKey(0xFF0D, true);
@@ -325,6 +325,18 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
     const next = !viewOnly;
     rfbRef.current.viewOnly = next;
     setViewOnly(next);
+    
+    // Paksakan fokus kembali ke terminal jika kita mengaktifkan mode Interactive
+    if (!next) {
+      setTimeout(() => {
+        const target = containerRef.current?.firstChild as HTMLElement;
+        if (target) {
+          target.focus();
+          const canvas = target.querySelector('canvas');
+          if (canvas) canvas.focus();
+        }
+      }, 50);
+    }
   }, [viewOnly]);
 
   /** Reconnect the session */
@@ -469,12 +481,12 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
           title={viewOnly ? 'Switch to Interactive Mode' : 'Switch to Read-Only Mode'}
           className={`flex items-center justify-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0 ${
             viewOnly
-              ? 'text-amber-400 bg-amber-500/15 hover:bg-amber-500/25'
-              : 'text-blue-400 bg-blue-500/15 hover:bg-blue-500/25'
+              ? 'text-blue-400 bg-blue-500/15 hover:bg-blue-500/25'
+              : 'text-amber-400 bg-amber-500/15 hover:bg-amber-500/25'
           }`}
         >
-          {viewOnly ? <MousePointer className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> : <Keyboard className="w-4 h-4 sm:w-3.5 sm:h-3.5" />}
-          <span className="hidden sm:inline">{viewOnly ? 'Read-Only' : 'Interactive'}</span>
+          {viewOnly ? <Keyboard className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> : <MousePointer className="w-4 h-4 sm:w-3.5 sm:h-3.5" />}
+          <span className="hidden sm:inline">{viewOnly ? 'Enable Interactive' : 'Set Read-Only'}</span>
         </button>
 
         {/* Reconnect */}
@@ -591,7 +603,11 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
             // Pemaksaan Fokus untuk Desktop/Laptop.
             // Karena sekarang targetnya dibuat dinamis, kita paksa fokus anak pertamanya.
             const target = containerRef.current?.firstChild as HTMLElement;
-            if (target) target.focus();
+            if (target) {
+              target.focus();
+              const canvas = target.querySelector('canvas');
+              if (canvas) canvas.focus();
+            }
           }
         }}
       >
