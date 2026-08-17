@@ -6,20 +6,10 @@ const api = axios.create({
   withCredentials: true, // Enterprise Hardening: Send HttpOnly cookies automatically
 });
 
-// Response interceptor to handle 401 Unauthorized globally
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // Token expired or invalid
-      // Redirect to login page only if we aren't already there
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+// Response interceptor removed — we no longer forcefully redirect on 401 globally.
+// This allows silent auth checks (like on the Landing Page) to fail gracefully
+// without hijacking the router and forcing a reload to /login.
+
 
 export default api;
 
