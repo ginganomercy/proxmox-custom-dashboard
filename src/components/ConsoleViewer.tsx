@@ -200,6 +200,22 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
     const handleWheel = (e: WheelEvent) => {
       if (!rfbRef.current) return;
       
+      // Check if noVNC's internal screen is overflowing (has scrollbars due to 1:1 scale)
+      const target = containerRef.current?.firstChild as HTMLElement;
+      if (target) {
+        const novncScreen = target.firstChild as HTMLElement;
+        if (novncScreen) {
+          // Compare scroll dimensions to client dimensions with a 1px tolerance
+          const isOverflowingY = novncScreen.scrollHeight > novncScreen.clientHeight + 1;
+          const isOverflowingX = novncScreen.scrollWidth > novncScreen.clientWidth + 1;
+          
+          if (isOverflowingY || isOverflowingX) {
+            // Let the browser natively pan the canvas!
+            return;
+          }
+        }
+      }
+
       const now = Date.now();
       if (now - lastWheelTime < 35) return; // Throttle to ~30 fps
       lastWheelTime = now;
