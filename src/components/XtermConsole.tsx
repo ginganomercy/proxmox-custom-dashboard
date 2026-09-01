@@ -77,13 +77,25 @@ export function XtermConsole({ node, type, vmid }: XtermConsoleProps) {
         xtermRef.current = term;
         fitAddonRef.current = fitAddon;
 
-        // 2. Minta Tiket Termproxy dari Backend Golang
+        // 2. Minta VNC Token khusus untuk WebSocket
+        let wsToken = '';
+        try {
+          const tokenRes = await api.get('/auth/vnc-token');
+          wsToken = tokenRes.data.token;
+        } catch (e: any) {
+          console.error("VNC token error:", e);
+          setError("Sesi kadaluarsa atau kredensial tidak valid. Silakan login kembali.");
+          setConnecting(false);
+          if (active) return;
+        }
+
+        // 3. Minta Tiket Termproxy dari Backend Golang
         const res = await api.post(`/proxmox/nodes/${node}/${type}/${vmid}/termproxy`);
         if (!active) return;
         
-        const { port, ticket } = res.data;
+        const { port, ticket, user } = res.data;
 
-        // 3. Bangun koneksi WebSocket ke Rust vnc-proxy
+        // 4. Bangun koneksi WebSocket ke Rust vnc-proxy
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         // Menggunakan port 3002 milik vnc-proxy
         const wsHost = import.meta.env.VITE_VNC_PROXY_URL 
@@ -92,14 +104,17 @@ export function XtermConsole({ node, type, vmid }: XtermConsoleProps) {
         
         const wsUrl = `${wsHost}/console/${node}/${vmid}?port=${port}&vncticket=${encodeURIComponent(ticket)}`;
         
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const ws = new WebSocket(wsUrl, ['jwt', token || '']);
+        const ws = new WebSocket(wsUrl, ['jwt', wsToken]);
         wsRef.current = ws;
 
         ws.onopen = () => {
           if (!active) return;
           setConnecting(false);
           term.focus();
+          // Proxmox termproxy mewajibkan pesan pertama adalah string otentikasi
+          if (user && ticket) {
+            ws.send(`${user}:${ticket}\n`);
+          }
         };
 
         ws.onmessage = (event) => {
