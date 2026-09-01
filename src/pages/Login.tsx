@@ -31,16 +31,10 @@ export function Login() {
       // We no longer manually read or store it via JavaScript.
 
       if (response.data) {
-        // Cek role untuk menentukan arah redirect (Intelligent Routing)
-        try {
-          const userRes = await api.get('/auth/me');
-          if (userRes.data && userRes.data.role === 'ADMIN') {
-            navigate('/admin');
-          } else {
-            navigate('/dashboard');
-          }
-        } catch (meErr) {
-          // Fallback jika /auth/me gagal
+        // Cek role untuk menentukan arah redirect secara langsung dari payload Login (Single-Trip)
+        if (response.data.role === 'ADMIN') {
+          navigate('/admin');
+        } else {
           navigate('/dashboard');
         }
       }
