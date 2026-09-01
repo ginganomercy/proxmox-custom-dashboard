@@ -8,6 +8,7 @@ const Login = React.lazy(() => import('@/pages/Login').then(module => ({ default
 const Dashboard = React.lazy(() => import('@/pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const AdminDashboard = React.lazy(() => import('@/pages/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 const SSOCallback = React.lazy(() => import('@/pages/SSOCallback').then(module => ({ default: module.SSOCallback })));
+const TerminalView = React.lazy(() => import('@/pages/TerminalView').then(module => ({ default: module.TerminalView })));
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/forgot-password" element={<Navigate to="/login" replace />} />
           <Route path="/reset-password" element={<Navigate to="/login" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/terminal/:node/:type/:vmid" element={<TerminalView />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

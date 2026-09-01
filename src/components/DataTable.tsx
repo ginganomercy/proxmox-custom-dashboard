@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Play, Square, HardDrive, Terminal, X, Power, PowerOff, Settings, Maximize2, MoreVertical, Activity } from 'lucide-react';
+import { Play, Square, HardDrive, Terminal, X, Power, PowerOff, Settings, Maximize2, MoreVertical, Activity, TerminalSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -82,6 +83,7 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
   const [activeMetrics, setActiveMetrics] = useState<VM | null>(null);
   const [isProcessing, setIsProcessing] = useState<number | null>(null);
   const consoleModalRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Rate Calculation State
   interface VMRates {
@@ -359,14 +361,25 @@ export function DataTable({ data, isLoading, nodeName = 'Capybara', onDeleteSucc
 
                         <DropdownMenu.Separator className="h-px bg-slate-200 dark:bg-slate-800 my-1 mx-2" />
 
-                        {/* Console */}
+                        {/* Console (Web VNC) */}
                         <DropdownMenu.Item asChild>
                           <button
                             onClick={() => setActiveConsole(vm)}
                             disabled={vm.status !== 'running'}
                             className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer outline-none disabled:opacity-40 disabled:cursor-not-allowed w-full"
                           >
-                            <Terminal className="w-4 h-4 text-blue-500" /> Console
+                            <Terminal className="w-4 h-4 text-blue-500" /> Web Console
+                          </button>
+                        </DropdownMenu.Item>
+
+                        {/* CLI Terminal (Xterm) */}
+                        <DropdownMenu.Item asChild>
+                          <button
+                            onClick={() => navigate(`/dashboard/terminal/${nodeName}/${vm.type || 'qemu'}/${vm.vmid}`)}
+                            disabled={vm.status !== 'running'}
+                            className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer outline-none disabled:opacity-40 disabled:cursor-not-allowed w-full"
+                          >
+                            <TerminalSquare className="w-4 h-4 text-emerald-500" /> CLI Terminal
                           </button>
                         </DropdownMenu.Item>
 

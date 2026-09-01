@@ -13,6 +13,8 @@
     "@novnc/novnc": "^1.7.0",
     "@radix-ui/react-dropdown-menu": "^2.1.24",
     "@radix-ui/react-tooltip": "^1.2.16",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
     "autoprefixer": "^10.5.0",
     "axios": "^1.17.0",
     "clsx": "^2.1.1",
