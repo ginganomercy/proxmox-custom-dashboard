@@ -37,10 +37,10 @@ type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
  *   rfb._updateScale() indirectly via a synthetic window resize event.
  */
 export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) {
-  // containerRef: the absolute-positioned div that noVNC mounts its canvas into
   const containerRef = useRef<HTMLDivElement>(null);
-  const rfbRef = useRef<RFB | null>(null);
-  const mobileInputRef = useRef<HTMLTextAreaElement>(null);
+  const rfbRef = useRef<any>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   const [status, setStatus] = useState<ConnectionStatus>('connecting');
   const [errorMsg, setErrorMsg] = useState('');
@@ -190,26 +190,38 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   }, [node, type, vmid, reconnectTrigger]);
 
   // Apply wheel interceptor for terminal scrolling natively
-  // We do this via an effect that runs once the container is mounted
+  // We do this via an effect that runs once the wrapper is mounted
   useEffect(() => {
-    const el = containerRef.current;
+    const el = wrapperRef.current;
     if (!el) return;
 
+    let lastWheelTime = 0;
+
     const handleWheel = (e: WheelEvent) => {
-      // ONLY intercept if connected and NOT in view-only mode
-      if (rfbRef.current && !rfbRef.current.viewOnly) {
-        e.preventDefault();
-        e.stopPropagation(); // Prevent noVNC's native scroll handling
+      if (!rfbRef.current) return;
+      
+      const now = Date.now();
+      if (now - lastWheelTime < 35) return; // Throttle to ~30 fps
+      lastWheelTime = now;
 
-        const SHIFT = 0xFFE1;
-        const PAGE_KEY = e.deltaY < 0 ? 0xFF55 : 0xFF56; // 0xFF55 is PageUp, 0xFF56 is PageDown
+      e.preventDefault();
+      e.stopPropagation(); // Prevent native scroll handling
 
-        // Send keys synchronously without delay to handle rapid scrolling smoothly
-        rfbRef.current.sendKey(SHIFT, true);
-        rfbRef.current.sendKey(PAGE_KEY, true);
-        rfbRef.current.sendKey(PAGE_KEY, false);
-        rfbRef.current.sendKey(SHIFT, false);
-      }
+      // Micro-toggle bypass: Temporarily lift viewOnly to send the keystroke
+      const wasViewOnly = rfbRef.current.viewOnly;
+      if (wasViewOnly) rfbRef.current.viewOnly = false;
+
+      const SHIFT = 0xFFE1;
+      const PAGE_KEY = e.deltaY < 0 ? 0xFF55 : 0xFF56; // 0xFF55 is PageUp, 0xFF56 is PageDown
+
+      // Send keys synchronously
+      rfbRef.current.sendKey(SHIFT, true);
+      rfbRef.current.sendKey(PAGE_KEY, true);
+      rfbRef.current.sendKey(PAGE_KEY, false);
+      rfbRef.current.sendKey(SHIFT, false);
+
+      // Restore viewOnly state immediately
+      if (wasViewOnly) rfbRef.current.viewOnly = true;
     };
 
     el.addEventListener('wheel', handleWheel, { passive: false });
@@ -249,7 +261,12 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
 
   /** Scroll terminal up or down by sending Shift+PageUp/PageDown */
   const scrollTerminal = useCallback((direction: 'up' | 'down') => {
-    if (!rfbRef.current || viewOnly) return;
+    if (!rfbRef.current) return;
+    
+    // Micro-toggle bypass
+    const wasViewOnly = rfbRef.current.viewOnly;
+    if (wasViewOnly) rfbRef.current.viewOnly = false;
+    
     const SHIFT = 0xFFE1;
     const PAGE_KEY = direction === 'up' ? 0xFF55 : 0xFF56; // 0xFF55 is PageUp, 0xFF56 is PageDown
 
@@ -257,7 +274,9 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
     rfbRef.current.sendKey(PAGE_KEY, true);
     rfbRef.current.sendKey(PAGE_KEY, false);
     rfbRef.current.sendKey(SHIFT, false);
-  }, [viewOnly]);
+    
+    if (wasViewOnly) rfbRef.current.viewOnly = true;
+  }, []);
 
   /** Universal Type/Paste mechanism bypassing buggy clipboard protocols */
   const pasteClipboard = useCallback(async () => {
@@ -619,6 +638,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
           natural resolution instead of letting it scale to fill the space.
       ───────────────────────────────────────────────────────────────────── */}
       <div
+        ref={wrapperRef}
         className="relative flex-1 bg-black overflow-hidden"
         style={{ minHeight: 0 }}
         onClick={() => {
