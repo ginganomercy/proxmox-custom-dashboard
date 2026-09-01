@@ -81,6 +81,7 @@ const UptimeWidget: React.FC = () => {
   const [monitors, setMonitors] = useState<MonitorTarget[]>([]);
   const [logs, setLogs] = useState<Record<string, MonitorLog[]>>({});
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   const fetchData = async () => {
@@ -98,8 +99,10 @@ const UptimeWidget: React.FC = () => {
       });
       
       setLogs(logsData);
-    } catch (error) {
+      setFetchError(null);
+    } catch (error: any) {
       console.error("Failed to fetch uptime data", error);
+      setFetchError(error.response?.data?.error || "Gagal menghubungi server untuk memuat data Endpoint.");
     } finally {
       setLoading(false);
     }
@@ -145,6 +148,13 @@ const UptimeWidget: React.FC = () => {
           <Plus className="w-4 h-4" /> Add Endpoint
         </button>
       </div>
+
+      {fetchError && (
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-400 rounded-2xl flex items-center gap-3 font-medium transition-colors">
+          <ShieldAlert className="w-5 h-5 flex-shrink-0" />
+          <p>{fetchError}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {monitors.map((monitor) => {
