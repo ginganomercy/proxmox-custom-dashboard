@@ -76,7 +76,6 @@ export function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [user, setUser] = useState<any>(null);
-  const [orders, setOrders] = useState<any[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string>('');
 
@@ -96,12 +95,11 @@ export function Dashboard() {
         setNodeName('Unknown (Mock)');
       }
 
-      // 2. Fetch node status, instances, user profile, and orders in parallel
-      const [statusRes, vmsRes, userRes, ordersRes] = await Promise.all([
+      // 2. Fetch node status, instances, and user profile in parallel
+      const [statusRes, vmsRes, userRes] = await Promise.all([
         api.get(`/proxmox/nodes/${targetNode}/status`).catch(() => null),
         api.get(`/proxmox/nodes/${targetNode}/instances`).catch(() => null),
-        api.get(`/auth/me`).catch((e) => e.response || null),
-        api.get(`/orders/me`).catch(() => null)
+        api.get(`/auth/me`).catch((e) => e.response || null)
       ]);
 
       // If /auth/me returns 404, the user record is gone (DB was wiped).
@@ -113,7 +111,6 @@ export function Dashboard() {
       }
 
       if (userRes?.data) setUser(userRes.data);
-      if (ordersRes?.data) setOrders(ordersRes.data);
 
       if (statusRes?.data && vmsRes?.data !== undefined) {
         setNodeStatus(statusRes.data);
