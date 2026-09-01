@@ -11,6 +11,16 @@ interface XtermConsoleProps {
   vmid: string;
 }
 
+const VirtualKey = ({ label, icon: Icon, sequence, onSend }: { label: string, icon?: any, sequence: string, onSend: (s: string) => void }) => (
+  <button
+    onClick={() => onSend(sequence)}
+    className="flex items-center justify-center min-w-[44px] h-10 px-2 rounded bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white active:bg-slate-600 transition-colors shadow-sm font-medium text-sm"
+    title={label}
+  >
+    {Icon ? <Icon className="w-4 h-4" /> : label}
+  </button>
+);
+
 export function XtermConsole({ node, type, vmid }: XtermConsoleProps) {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<Terminal | null>(null);
@@ -167,16 +177,6 @@ export function XtermConsole({ node, type, vmid }: XtermConsoleProps) {
     }
   };
 
-  const VirtualKey = ({ label, icon: Icon, sequence }: { label: string, icon?: any, sequence: string }) => (
-    <button
-      onClick={() => sendKey(sequence)}
-      className="flex items-center justify-center min-w-[44px] h-10 px-2 rounded bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white active:bg-slate-600 transition-colors shadow-sm font-medium text-sm"
-      title={label}
-    >
-      {Icon ? <Icon className="w-4 h-4" /> : label}
-    </button>
-  );
-
   return (
     <div className="flex flex-col h-full w-full bg-[#0f172a] relative">
       {/* Overlay Status */}
@@ -219,20 +219,20 @@ export function XtermConsole({ node, type, vmid }: XtermConsoleProps) {
         {showKeyboardToolbar && (
           <div className="p-2 pt-0 flex flex-col gap-2">
             <div className="flex justify-between gap-1 overflow-x-auto pb-1 no-scrollbar">
-              <VirtualKey label="Esc" sequence="\x1b" />
-              <VirtualKey label="Tab" sequence="\x09" icon={ArrowRightToLine} />
-              <VirtualKey label="Ctrl+C" sequence="\x03" />
-              <VirtualKey label="Ctrl+D" sequence="\x04" />
-              <VirtualKey label="Enter" sequence="\x0d" icon={CornerDownLeft} />
+              <VirtualKey label="Esc" sequence="\x1b" onSend={sendKey} />
+              <VirtualKey label="Tab" sequence="\x09" icon={ArrowRightToLine} onSend={sendKey} />
+              <VirtualKey label="Ctrl+C" sequence="\x03" onSend={sendKey} />
+              <VirtualKey label="Ctrl+D" sequence="\x04" onSend={sendKey} />
+              <VirtualKey label="Enter" sequence="\x0d" icon={CornerDownLeft} onSend={sendKey} />
             </div>
             
             <div className="flex justify-between gap-1 overflow-x-auto pb-1 no-scrollbar">
-              <VirtualKey label="Up" icon={ChevronUp} sequence="\x1b[A" />
-              <VirtualKey label="Down" icon={ChevronDown} sequence="\x1b[B" />
-              <VirtualKey label="Left" icon={ChevronLeft} sequence="\x1b[D" />
-              <VirtualKey label="Right" icon={ChevronRight} sequence="\x1b[C" />
-              <VirtualKey label="|" sequence="|" />
-              <VirtualKey label="/" sequence="/" />
+              <VirtualKey label="Up" icon={ChevronUp} sequence="\x1b[A" onSend={sendKey} />
+              <VirtualKey label="Down" icon={ChevronDown} sequence="\x1b[B" onSend={sendKey} />
+              <VirtualKey label="Left" icon={ChevronLeft} sequence="\x1b[D" onSend={sendKey} />
+              <VirtualKey label="Right" icon={ChevronRight} sequence="\x1b[C" onSend={sendKey} />
+              <VirtualKey label="|" sequence="|" onSend={sendKey} />
+              <VirtualKey label="/" sequence="/" onSend={sendKey} />
             </div>
           </div>
         )}

@@ -75,7 +75,8 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
           const tokenRes = await api.get('/auth/vnc-token');
           token = tokenRes.data.token;
         } catch (e: any) {
-          throw new Error('No authentication token found or session expired. Please log in again.', { cause: e });
+          e.message = 'No authentication token found or session expired. Please log in again. ' + e.message;
+          throw e;
         }
 
         const res = await api.post(`/proxmox/nodes/${node}/${type}/${vmid}/vncproxy`);
