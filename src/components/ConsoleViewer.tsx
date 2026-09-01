@@ -189,6 +189,35 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
     };
   }, [node, type, vmid, reconnectTrigger]);
 
+  // Apply wheel interceptor for terminal scrolling natively
+  // We do this via an effect that runs once the container is mounted
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // ONLY intercept if connected and NOT in view-only mode
+      if (rfbRef.current && !rfbRef.current.viewOnly) {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent noVNC's native scroll handling
+
+        const SHIFT = 0xFFE1;
+        const PAGE_KEY = e.deltaY < 0 ? 0xFF55 : 0xFF56; // 0xFF55 is PageUp, 0xFF56 is PageDown
+
+        // Send keys synchronously without delay to handle rapid scrolling smoothly
+        rfbRef.current.sendKey(SHIFT, true);
+        rfbRef.current.sendKey(PAGE_KEY, true);
+        rfbRef.current.sendKey(PAGE_KEY, false);
+        rfbRef.current.sendKey(SHIFT, false);
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
   // ─────────────────────────────────────────────────────────────────────────
   // Toolbar actions
   // ─────────────────────────────────────────────────────────────────────────
@@ -210,7 +239,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
       rfbRef.current.sendKey(0xFFE9, false);
       setAltActive(false);
     }
-  }, [ctrlActive, altActive]);
+  }, [ctrlActive, altActive, viewOnly]);
 
   /** Send Ctrl+Alt+Delete to the remote VM */
   const sendCtrlAltDel = useCallback(() => {
@@ -219,18 +248,16 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
   }, [viewOnly]);
 
   /** Scroll terminal up or down by sending Shift+PageUp/PageDown */
-  const scrollTerminal = useCallback(async (direction: 'up' | 'down') => {
+  const scrollTerminal = useCallback((direction: 'up' | 'down') => {
     if (!rfbRef.current || viewOnly) return;
     const SHIFT = 0xFFE1;
     const PAGE_KEY = direction === 'up' ? 0xFF55 : 0xFF56; // 0xFF55 is PageUp, 0xFF56 is PageDown
 
     rfbRef.current.sendKey(SHIFT, true);
-    await new Promise(r => setTimeout(r, 10)); // Ensure Shift registers first
     rfbRef.current.sendKey(PAGE_KEY, true);
     rfbRef.current.sendKey(PAGE_KEY, false);
-    await new Promise(r => setTimeout(r, 10));
     rfbRef.current.sendKey(SHIFT, false);
-  }, []);
+  }, [viewOnly]);
 
   /** Universal Type/Paste mechanism bypassing buggy clipboard protocols */
   const pasteClipboard = useCallback(async () => {
@@ -248,7 +275,7 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
       // 5ms delay between keystrokes to ensure VM processes them
       await new Promise(r => setTimeout(r, 5));
     }
-  }, [clipboardText]);
+  }, [clipboardText, viewOnly]);
 
   /** Hidden interceptor for Termux-style native mobile typing */
   const handleMobileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -628,6 +655,12 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
           spellCheck={false}
           className="absolute top-0 left-0 w-1 h-1 opacity-0 z-0 pointer-events-none"
         />
+        {status === 'connected' && viewOnly && (
+          <div 
+            className="absolute inset-0 z-20 cursor-not-allowed" 
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }} 
+          />
+        )}
         {/* noVNC mounts its canvas into this div. It must be positioned to fill and center perfectly in 4:3 frame. */}
         {/* We leave this div empty initially. The pure DOM element will be appended here. */}
         <div
