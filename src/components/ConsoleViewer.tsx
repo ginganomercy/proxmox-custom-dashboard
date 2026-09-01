@@ -210,7 +210,11 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
           const isOverflowingX = novncScreen.scrollWidth > novncScreen.clientWidth + 1;
           
           if (isOverflowingY || isOverflowingX) {
-            // Let the browser natively pan the canvas!
+            // STOP the event from tunneling down to noVNC! 
+            // noVNC aggressively calls preventDefault() on all wheel events in Interactive Mode,
+            // which breaks native browser panning. By stopping propagation here in the capture phase,
+            // noVNC never sees the event, and the browser naturally pans the canvas!
+            e.stopPropagation();
             return;
           }
         }
@@ -240,9 +244,9 @@ export function ConsoleViewer({ node, type, vmid, vmName }: ConsoleViewerProps) 
       if (wasViewOnly) rfbRef.current.viewOnly = true;
     };
 
-    el.addEventListener('wheel', handleWheel, { passive: false });
+    el.addEventListener('wheel', handleWheel, { passive: false, capture: true });
     return () => {
-      el.removeEventListener('wheel', handleWheel);
+      el.removeEventListener('wheel', handleWheel, { capture: true });
     };
   }, []);
 
