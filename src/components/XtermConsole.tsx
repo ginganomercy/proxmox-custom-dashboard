@@ -96,13 +96,9 @@ export function XtermConsole({ node, type, vmid }: XtermConsoleProps) {
         const { port, ticket, user } = res.data;
 
         // 4. Bangun koneksi WebSocket ke Rust vnc-proxy
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        // Menggunakan port 3002 milik vnc-proxy
-        const wsHost = import.meta.env.VITE_VNC_PROXY_URL 
-          ? import.meta.env.VITE_VNC_PROXY_URL.replace('http', 'ws')
-          : `${wsProtocol}//${window.location.hostname}:3002`;
+        const wsBaseUrl = import.meta.env.VITE_VNC_URL || (import.meta.env.DEV ? 'ws://localhost:3002' : 'wss://cloud-proxy.pbjt.web.id');
         
-        const wsUrl = `${wsHost}/console/${node}/${vmid}?port=${port}&vncticket=${encodeURIComponent(ticket)}`;
+        const wsUrl = `${wsBaseUrl}/console/${node}/${vmid}?port=${port}&vncticket=${encodeURIComponent(ticket)}`;
         
         const ws = new WebSocket(wsUrl, ['jwt', wsToken]);
         wsRef.current = ws;
